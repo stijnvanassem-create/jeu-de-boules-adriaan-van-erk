@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D2950">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jeu de Boules">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Jeu de Boules</title>
+<style>
+:root{
+  --navy:#0D2950; --blue:#009ADC; --white:#fff; --grey:#EDF0F4; --line:#C9D1DC;
+  --orange:#FF8A00; --red:#E3242B;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+  --nav-h:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--navy);color:var(--navy);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-weight:700;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.35;cursor:default}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:var(--sat) var(--sar) 0 var(--sal)}
+#app.dark{background:var(--navy);color:var(--white)}
+#app.light{background:var(--grey);color:var(--navy)}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 16px}
+
+/* ---------- topbar ---------- */
+.top{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--navy);color:var(--white);min-height:48px}
+.top .title,.top .lane{white-space:nowrap}
+.top .title{font-size:19px;font-weight:900;letter-spacing:.2px;user-select:none;-webkit-user-select:none}
+.top .lane{font-size:15px;font-weight:800;background:var(--blue);color:#fff;padding:3px 9px;border-radius:8px;font-size:20px}
+.top .clock{margin-left:auto;text-align:right;line-height:1.1}
+.top .clock b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.top .clock small{font-size:13px;font-weight:700}
+
+/* ---------- bottom nav ---------- */
+nav{display:flex;background:var(--white);border-top:2px solid var(--line);padding-bottom:var(--sab)}
+nav button{flex:1;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:14px;font-weight:800;color:var(--navy);position:relative}
+nav button svg{width:26px;height:26px}
+nav button.on::before{content:"";position:absolute;top:0;left:18%;right:18%;height:5px;background:var(--blue);border-radius:0 0 5px 5px}
+nav button.on{font-weight:900}
+
+/* ---------- avatars ---------- */
+.av{--s:40px;position:relative;flex:none;width:var(--s);height:var(--s);border-radius:50%;overflow:hidden;
+  display:inline-grid;place-items:center;background:var(--blue);color:#fff;font-weight:900;font-size:calc(var(--s)*.46);
+  box-shadow:0 0 0 2px #fff}
+.av.c1{background:var(--navy)}
+.light .av{box-shadow:0 0 0 2px var(--navy)}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* ---------- generic ---------- */
+.card{background:var(--white);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 0 var(--line)}
+h2{font-size:24px;font-weight:900;margin:6px 2px 12px}
+h3{font-size:19px;font-weight:900;margin:0 0 10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:60px;padding:0 18px;border-radius:14px;
+  font-size:21px;font-weight:900;width:100%}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.navy{background:var(--navy);color:#fff}
+.btn.ghost{background:var(--white);color:var(--navy);box-shadow:inset 0 0 0 3px var(--navy)}
+.dark .btn.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 3px #fff}
+.btn.danger{background:var(--white);color:var(--navy);box-shadow:inset 0 0 0 3px var(--red)}
+.row{display:flex;gap:10px;align-items:center}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;height:58px;border-radius:12px;font-size:24px;font-weight:900;background:var(--white);color:var(--navy);box-shadow:inset 0 0 0 3px var(--navy)}
+.seg button.on{background:var(--blue);color:#fff;box-shadow:none}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:58px;height:58px;border-radius:12px;background:var(--navy);color:#fff;font-size:30px;font-weight:900}
+.stepper output{flex:1;text-align:center;font-size:30px;font-weight:900}
+.note{font-size:15px;font-weight:700;line-height:1.35}
+.lbl{font-size:16px;font-weight:900;margin:2px 0 8px}
+
+/* ---------- lane select ---------- */
+.lanes{display:grid;gap:12px}
+.lanebtn{display:block;text-align:left;width:100%;background:var(--white);color:var(--navy);border-radius:18px;padding:14px 16px;
+  box-shadow:inset 0 0 0 4px var(--blue)}
+.lanebtn .n{display:flex;align-items:center;gap:10px;font-size:30px;font-weight:900}
+.lanebtn .n span{background:var(--blue);color:#fff;border-radius:10px;padding:0 10px;font-size:26px}
+.lanebtn .p{font-size:16px;font-weight:700;margin-top:6px;line-height:1.35}
+.hero{color:#fff;text-align:center;padding:16px 8px 18px}
+.hero h1{font-size:34px;font-weight:900;margin:0}
+.hero p{font-size:17px;margin:6px 0 0;font-weight:700}
+
+/* ---------- start ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:12px 8px}
+.pgrid div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:16px;text-align:center}
+
+/* ---------- round ---------- */
+.rhead{display:flex;align-items:center;gap:10px;margin:0 2px 8px}
+.rhead .rn{font-size:24px;font-weight:900}
+.dots{display:flex;gap:6px;margin-left:auto}
+.dots i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 2px #fff}
+.dots i.done{background:#fff}
+.dots i.cur{background:var(--blue);box-shadow:0 0 0 3px #fff;width:16px;height:16px}
+
+.timer{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border-radius:16px;padding:8px 10px 8px 16px;margin-bottom:10px}
+.timer .t{font-size:54px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1;flex:1}
+.timer button{width:62px;height:62px;border-radius:14px;background:var(--blue);color:#fff;display:grid;place-items:center}
+.timer button.sec{background:transparent;box-shadow:inset 0 0 0 3px #fff;width:54px}
+.timer button svg{width:30px;height:30px}
+.timer.warn{background:var(--orange);color:var(--navy)}
+.timer.warn button.sec{box-shadow:inset 0 0 0 3px var(--navy);color:var(--navy)}
+.timer.crit{background:var(--red);color:#fff;animation:pulse 1s infinite}
+.timer.over{background:var(--red);color:#fff}
+@keyframes pulse{50%{filter:brightness(1.25)}}
+
+.rest{display:flex;align-items:center;gap:10px;border:3px dashed rgba(255,255,255,.7);border-radius:14px;padding:6px 12px;margin-bottom:10px;font-size:18px}
+.rest b{font-weight:900}
+
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.team{border-radius:16px;background:rgba(255,255,255,.08);padding:0 0 8px;overflow:hidden;display:flex;flex-direction:column}
+.team .th{font-size:20px;font-weight:900;text-align:center;padding:5px 0;letter-spacing:.5px}
+.team.A .th{background:var(--blue);color:#fff}
+.team.B .th{background:#fff;color:var(--navy)}
+.team.lead{box-shadow:0 0 0 4px var(--blue)}
+.team.B.lead{box-shadow:0 0 0 4px #fff}
+.members{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0}
+.members div{display:flex;align-items:center;gap:8px;font-size:16px;min-width:0}
+.members span:not(.av){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score{font-size:84px;font-weight:900;text-align:center;line-height:1;margin:6px 0 6px;font-variant-numeric:tabular-nums}
+.pts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 8px}
+.pts button{height:56px;border-radius:12px;font-size:25px;font-weight:900}
+.team.A .pts button{background:var(--blue);color:#fff}
+.team.B .pts button{background:#fff;color:var(--navy)}
+.pts button:active:not(:disabled){transform:scale(.94)}
+
+.menes{display:flex;align-items:center;gap:8px;margin-top:10px}
+.mlist{flex:1;display:flex;gap:6px;overflow-x:auto;padding:4px 2px;scrollbar-width:none;min-height:50px;align-items:center}
+.mlist::-webkit-scrollbar{display:none}
+.mlist .m{flex:none;border-radius:10px;padding:4px 8px;text-align:center;line-height:1.1;font-size:15px}
+.mlist .m b{display:block;font-size:20px}
+.mlist .m.A{box-shadow:inset 0 0 0 3px var(--blue);color:#fff}
+.mlist .m.B{background:#fff;color:var(--navy)}
+.mlist .empty{font-size:16px}
+.undo{flex:none;height:54px;padding:0 14px;border-radius:12px;box-shadow:inset 0 0 0 3px #fff;font-size:18px;font-weight:900;display:flex;align-items:center;gap:6px}
+.undo svg{width:22px;height:22px}
+.ractions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.ractions .btn{min-height:54px;font-size:17px;padding:0 8px;white-space:nowrap}
+
+@media (max-height:720px){
+  .rhead{margin-bottom:4px}.rhead .rn{font-size:20px}
+  .timer{padding:4px 8px 4px 14px;margin-bottom:6px}.timer .t{font-size:44px}
+  .timer button{width:52px;height:52px}.timer button.sec{width:48px}
+  .rest{padding:3px 10px;margin-bottom:6px;font-size:16px}
+  .members{gap:3px;padding-top:6px}.members .av{--s:28px!important}.members div{font-size:15px}
+  .score{font-size:60px;margin:2px 0 4px}
+  .pts button{height:50px;font-size:22px}
+  .menes{margin-top:6px}.undo{height:48px}
+}
+
+/* ---------- standings ---------- */
+.livebar{background:var(--navy);color:#fff;border-radius:12px;padding:8px 12px;font-size:15px;margin-bottom:10px}
+.st{list-style:none;margin:0;padding:0}
+.st li{display:grid;grid-template-columns:30px 44px 1fr auto;align-items:center;gap:10px;padding:10px 4px;border-bottom:2px solid var(--grey)}
+.st li:last-child{border-bottom:0}
+.st .pos{font-size:24px;font-weight:900;text-align:center}
+.st .nm{font-size:19px;font-weight:900;line-height:1.15;min-width:0}
+.st .sub{display:block;font-size:14px;font-weight:700;margin-top:3px;line-height:1.3}
+.st .avg{text-align:right;line-height:1.05}
+.st .avg b{display:block;font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
+.st .avg small{font-size:14px;font-weight:800}
+.st li.first{background:linear-gradient(90deg,rgba(0,154,220,.14),transparent)}
+.badge{display:inline-block;font-size:13px;font-weight:900;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:2px;background:var(--navy);color:#fff}
+.legend{font-size:14px;margin-top:10px;line-height:1.4}
+
+.res{border-left:6px solid var(--line)}
+.res.cur{border-left-color:var(--blue)}
+.res.done{border-left-color:var(--navy)}
+.res .rh{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.res .rh h3{margin:0}
+.chip{font-size:14px;font-weight:900;border-radius:999px;padding:3px 10px;background:var(--grey);color:var(--navy)}
+.chip.cur{background:var(--navy);color:#fff}
+.res .vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.res .tm{font-size:16px;line-height:1.35}
+.res .tm.r{text-align:right}
+.res .tm.win{font-weight:900;text-decoration:underline;text-decoration-thickness:3px;text-decoration-color:var(--blue);text-underline-offset:3px}
+.res .sc{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.res .rs{font-size:15px;margin-top:8px}
+.avrow{display:flex;gap:4px;margin-bottom:4px}
+.tm.r .avrow{justify-content:flex-end}
+
+/* ---------- settings ---------- */
+.set .card{display:grid;gap:10px}
+
+/* ---------- modal ---------- */
+#modal{position:fixed;inset:0;z-index:50;background:rgba(13,41,80,.7);display:flex;align-items:flex-end;justify-content:center;
+  padding:12px 12px calc(12px + var(--sab))}
+#modal[hidden]{display:none}
+.sheet{background:#fff;color:var(--navy);border-radius:20px;padding:20px 16px 16px;width:100%;max-width:520px;max-height:90%;overflow:auto;
+  animation:up .18s ease-out}
+.sheet h3{font-size:26px;margin-bottom:8px}
+.sheet p{font-size:18px;font-weight:700;margin:0 0 14px;line-height:1.35}
+.sheet .btns{display:grid;gap:10px}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+
+/* ---------- easter eggs ---------- */
+.fx{position:fixed;inset:0;z-index:40;display:grid;place-items:center;pointer-events:none;padding:20px}
+.fxin{background:var(--navy);color:#fff;border-radius:24px;padding:22px 26px;text-align:center;box-shadow:0 0 0 5px var(--blue),0 20px 60px rgba(0,0,0,.45);
+  max-width:92vw;display:grid;gap:8px;justify-items:center;animation:fxpop var(--ms) ease-out forwards}
+.fx.soft .fxin{background:#fff;color:var(--navy)}
+.fxin .huge{font-size:clamp(46px,14vw,76px);font-weight:900;line-height:1;letter-spacing:-1px}
+.fxin .big{font-size:44px;font-weight:900;line-height:1}
+.fxin span:not(.av){font-size:19px;font-weight:800}
+.fxin .fanny{color:#fff;text-shadow:4px 4px 0 var(--blue)}
+.fxav{display:flex;gap:8px}
+.fx.fire .fxin{animation:fxpop var(--ms) ease-out forwards,shake .12s linear 6}
+@keyframes fxpop{0%{transform:scale(.4);opacity:0}12%{transform:scale(1.08);opacity:1}20%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(.96)}}
+@keyframes shake{25%{translate:-5px 0}75%{translate:5px 0}}
+.carreau{width:200px;height:72px}
+.carreau .b1{fill:var(--blue);animation:roll .5s ease-in forwards}
+.carreau .b2{fill:#fff;animation:knock .45s .45s ease-out forwards}
+@keyframes roll{from{transform:translateX(-60px)}to{transform:translateX(82px)}}
+@keyframes knock{to{transform:translateX(90px) rotate(30deg);opacity:0}}
+.toast{position:fixed;left:50%;top:calc(var(--sat) + 62px);z-index:45;transform:translateX(-50%);pointer-events:none;
+  background:#fff;color:var(--navy);font-size:24px;font-weight:900;font-style:italic;padding:10px 20px;border-radius:999px;
+  box-shadow:0 0 0 4px var(--blue),0 8px 24px rgba(0,0,0,.3);white-space:nowrap;animation:toast 1.9s ease-out forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-14px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.confetti{position:fixed;inset:0;width:100%;height:100%;z-index:39;pointer-events:none}
+.badge.feu{background:var(--blue);color:#fff}
+.loser{display:inline-block;width:22px;height:18px;margin-left:6px;transform:rotate(180deg);vertical-align:-2px;color:var(--navy)}
+.crown{width:100%;height:100%;display:block}
+@media (prefers-reduced-motion: reduce){.fxin,.toast,.carreau *{animation-duration:.01ms!important}}
+
+/* ---------- eindscherm ---------- */
+.endhead{text-align:center;color:#fff;margin:6px 0 4px}
+.endhead span:not(.av){font-size:17px}
+.endhead h1{font-size:34px;font-weight:900;margin:2px 0 0}
+.podium{display:grid;grid-template-columns:1fr 1.25fr 1fr;align-items:end;gap:6px;margin-top:22px;color:#fff;text-align:center}
+.pod{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.pod b{font-size:20px;font-weight:900;margin-top:6px;line-height:1.1}
+.pod.p1 b{font-size:26px}
+.pod span:not(.av){font-size:16px}
+.pod .av{box-shadow:0 0 0 4px #fff}
+.pod.p1 .av{box-shadow:0 0 0 5px var(--blue),0 0 0 9px #fff}
+.crownw{width:54px;height:40px;color:var(--blue);margin-bottom:-2px}
+.end .card{color:var(--navy)}
+
+/* ---------- retro-modus (7x op de titel tikken) ---------- */
+html.retro{--navy:#2A0E4F;--blue:#FF2E88;--grey:#FFF3D6;--line:#E8C98A}
+html.retro :is(.score,.timer .t,.top .title,h1,h2,.fxin b,.toast,.st .avg b){font-family:"Courier New",Courier,monospace;letter-spacing:-1px}
+html.retro .top .title{text-shadow:2px 2px 0 var(--blue)}
+html.retro .score{text-shadow:4px 4px 0 var(--blue)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal" hidden></div>
+<script>
+'use strict';
+// ============================================================
+// Speelschema — gegenereerd met tools/schema.py, NIET met de hand aanpassen.
+// ============================================================
+const SCHEDULE = {"1": [{"a": ["Stefen", "Arie", "Hanna G"], "b": ["Juliëtte", "Joost", "Gordon"], "rest": null}, {"a": ["Stefen", "Arie", "Juliëtte"], "b": ["Hanna G", "Joost", "Gordon"], "rest": null}, {"a": ["Stefen", "Hanna G", "Joost"], "b": ["Arie", "Juliëtte", "Gordon"], "rest": null}, {"a": ["Stefen", "Juliëtte", "Joost"], "b": ["Arie", "Hanna G", "Gordon"], "rest": null}], "2": [{"a": ["Bert", "Renata", "Gert"], "b": ["Marcel", "Emil", "Pieter Jan"], "rest": "Niels"}, {"a": ["Bert", "Niels", "Marcel"], "b": ["Renata", "Emil", "Pieter Jan"], "rest": "Gert"}, {"a": ["Bert", "Niels", "Emil"], "b": ["Gert", "Marcel", "Pieter Jan"], "rest": "Renata"}, {"a": ["Bert", "Renata", "Pieter Jan"], "b": ["Niels", "Gert", "Emil"], "rest": "Marcel"}], "3": [{"a": ["Roos", "Roxanne", "Bartjan"], "b": ["Louis", "Ronnie", "Annika"], "rest": "Myrna"}, {"a": ["Myrna", "Roos", "Louis"], "b": ["Bartjan", "Ronnie", "Annika"], "rest": "Roxanne"}, {"a": ["Myrna", "Roos", "Ronnie"], "b": ["Roxanne", "Louis", "Annika"], "rest": "Bartjan"}, {"a": ["Myrna", "Roxanne", "Ronnie"], "b": ["Roos", "Bartjan", "Louis"], "rest": "Annika"}], "4": [{"a": ["Ardin", "Mark", "Johan"], "b": ["Hanna K", "Bart", "Abby"], "rest": null}, {"a": ["Ardin", "Mark", "Hanna K"], "b": ["Johan", "Bart", "Abby"], "rest": null}, {"a": ["Ardin", "Johan", "Bart"], "b": ["Mark", "Hanna K", "Abby"], "rest": null}, {"a": ["Ardin", "Hanna K", "Bart"], "b": ["Mark", "Johan", "Abby"], "rest": null}]};
+const LANES = {
+  1: ['Stefen', 'Arie', 'Hanna G', 'Juliëtte', 'Joost', 'Gordon'],
+  2: ['Bert', 'Renata', 'Niels', 'Gert', 'Marcel', 'Emil', 'Pieter Jan'],
+  3: ['Myrna', 'Roos', 'Roxanne', 'Bartjan', 'Louis', 'Ronnie', 'Annika'],
+  4: ['Ardin', 'Mark', 'Johan', 'Hanna K', 'Bart', 'Abby'],
+};
+const ROUNDS = 4;
+const TARGETS = [9, 11, 13];
+const EVENT_MIN = 90;
+
+// ---------- opslag ----------
+const ls = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+const fresh = l => ({
+  v: 1, lane: l, started: false, startedAt: null, target: 13, roundMin: 18,
+  current: 0, finished: false,
+  rounds: Array.from({ length: ROUNDS }, () => ({ menes: [], status: 'open', acc: 0, since: null, timeUp: false })),
+});
+function loadLane(l) {
+  try { const s = JSON.parse(ls.get('jdb_baan' + l)); if (s && s.v === 1) return s; } catch (e) {}
+  return fresh(l);
+}
+let lane = Number(ls.get('jdb_lane')) || null;
+if (!LANES[lane]) lane = null;
+let S = lane ? loadLane(lane) : null;
+let tab = 'ronde';
+const save = () => ls.set('jdb_baan' + lane, JSON.stringify(S));
+
+// ---------- helpers ----------
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const slug = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, '-');
+const photo = (l, n) => `players/baan${l}/${slug(n)}.jpg`;
+const missing = new Set();
+window.miss = img => { missing.add(img.getAttribute('src')); img.remove(); };
+function av(n, size = 40, l = lane) {
+  const src = photo(l, n);
+  const c = [...n].reduce((h, ch) => h + ch.charCodeAt(0), 0) % 2 ? ' c1' : '';
+  const img = missing.has(src) ? '' : `<img src="${src}" alt="" loading="lazy" onerror="miss(this)">`;
+  return `<span class="av${c}" style="--s:${size}px">${esc(n[0])}${img}</span>`;
+}
+const fmtClock = ms => {
+  const neg = ms < 0; ms = Math.abs(ms);
+  const s = Math.ceil(ms / 1000), m = Math.floor(s / 60);
+  return (neg ? '+' : '') + m + ':' + String(s % 60).padStart(2, '0');
+};
+const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
+const sgnDec = n => { const r = Math.round(n * 10) / 10; return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(1).replace('.', ','); };
+const sched = i => SCHEDULE[lane][i];
+const score = r => r.menes.reduce((s, m) => (s[m.t] += m.p, s), [0, 0]);
+const elapsed = r => r.acc + (r.since ? Date.now() - r.since : 0);
+const remaining = r => S.roundMin * 60000 - elapsed(r);
+const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+const ICON = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>',
+  reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+  ronde: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="9" cy="13" r="6"/><circle cx="17" cy="9" r="4"/><circle cx="18" cy="19" r="1.6" fill="currentColor"/></svg>',
+  stand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M3 20h18"/><rect x="9" y="5" width="6" height="15"/><rect x="3" y="11" width="6" height="9"/><rect x="15" y="9" width="6" height="11"/></svg>',
+  meer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="#fff"/><circle cx="15" cy="12" r="2" fill="#fff"/><circle cx="8" cy="18" r="2" fill="#fff"/></svg>',
+};
+
+// ---------- klassement ----------
+// Rondes die meetellen: afgesloten rondes + (live) de lopende ronde zodra er een mène gespeeld is.
+function countedRounds(live = true) {
+  const out = [];
+  S.rounds.forEach((r, i) => {
+    const isLive = live && !S.finished && S.started && i === S.current && r.status === 'open' && r.menes.length > 0;
+    if (r.status === 'done' || isLive) {
+      const [sa, sb] = score(r);
+      out.push({ i, sa, sb, live: isLive, ...sched(i) });
+    }
+  });
+  return out;
+}
+function standings(live = true) {
+  const rounds = countedRounds(live);
+  const P = {};
+  LANES[lane].forEach(n => P[n] = { name: n, played: 0, w: 0, l: 0, d: 0, pf: 0, pa: 0, tot: 0, fanny: 0, seq: [] });
+  for (const r of rounds) {
+    const side = (team, f, a) => team.forEach(n => {
+      const p = P[n]; p.played++; p.pf += f; p.pa += a; p.tot += f - a;
+      if (f > a) p.w++; else if (f < a) p.l++; else p.d++;
+      if (!r.live && f < a && f === 0) p.fanny++;
+      p.seq.push({ i: r.i, res: f > a ? 'W' : f < a ? 'L' : 'D', live: r.live });
+    });
+    side(r.a, r.sa, r.sb); side(r.b, r.sb, r.sa);
+  }
+  const list = Object.values(P);
+  list.forEach(p => p.avg = p.played ? p.tot / p.played : 0);
+  // Onderling resultaat binnen een groep die gelijk staat op gemiddelde én punten voor.
+  const h2h = (p, group) => {
+    let s = 0;
+    for (const r of rounds) {
+      const inA = r.a.includes(p.name), inB = r.b.includes(p.name);
+      if (!inA && !inB) continue;
+      const opp = inA ? r.b : r.a;
+      const d = inA ? r.sa - r.sb : r.sb - r.sa;
+      s += d * group.filter(q => q !== p && opp.includes(q.name)).length;
+    }
+    return s;
+  };
+  const key = p => Math.round(p.avg * 1000) + '|' + p.pf;
+  const groups = {};
+  list.forEach(p => (groups[key(p)] = groups[key(p)] || []).push(p));
+  list.forEach(p => p.h2h = groups[key(p)].length > 1 ? h2h(p, groups[key(p)]) : 0);
+  list.sort((x, y) => y.avg - x.avg || y.pf - x.pf || y.h2h - x.h2h || x.name.localeCompare(y.name, 'nl'));
+  return { list, rounds, live: rounds.some(r => r.live) };
+}
+
+// ---------- views ----------
+function topbar() {
+  let clock = '';
+  if (lane && S.started) clock = `<div class="clock" id="clock"></div>`;
+  return `<header class="top"><span class="title" data-act="title">Jeu de Boules</span>${lane ? `<span class="lane">Baan ${lane}</span>` : ''}${clock}</header>`;
+}
+function nav() {
+  const b = (id, label) => `<button class="${tab === id ? 'on' : ''}" data-act="tab" data-arg="${id}">${ICON[id]}${label}</button>`;
+  return `<nav>${b('ronde', 'Ronde')}${b('stand', 'Klassement')}${b('meer', 'Instellingen')}</nav>`;
+}
+function viewLanes() {
+  return `<div class="hero"><h1>Welke baan ben jij?</h1><p>Kies de baan van deze telefoon. De app onthoudt je keuze.</p></div>
+  <div class="lanes">${Object.entries(LANES).map(([l, ps]) => `
+    <button class="lanebtn" data-act="pickLane" data-arg="${l}">
+      <div class="n"><span>${l}</span> Baan ${l}</div>
+      <div class="p">${ps.map(esc).join(' · ')}</div>
+    </button>`).join('')}</div>`;
+}
+function viewStart() {
+  const ps = LANES[lane];
+  return `<div class="card" style="color:var(--navy)">
+      <h2 style="margin-top:0">Baan ${lane} · ${ps.length} spelers</h2>
+      <div class="pgrid">${ps.map(n => `<div>${av(n, 64)}<span>${esc(n)}</span></div>`).join('')}</div>
+      ${ps.length === 7 ? `<p class="note" style="margin:12px 0 0">Met 7 spelers rust er elke ronde één speler; iedereen rust hooguit één keer.</p>` : ''}
+    </div>
+    <div class="card" style="color:var(--navy)">
+      <div class="lbl">Doelscore</div>
+      ${segTarget()}
+      <div class="lbl" style="margin-top:14px">Rondetijd (minuten)</div>
+      ${stepper()}
+    </div>
+    <button class="btn primary" style="min-height:72px;font-size:26px" data-act="start">Start</button>
+    <p class="note" style="color:#fff;text-align:center">Bij Start begint ook de klok van het uitje (${EVENT_MIN} min).</p>`;
+}
+const segTarget = () => `<div class="seg">${TARGETS.map(t => `<button class="${S.target === t ? 'on' : ''}" data-act="target" data-arg="${t}">${t}</button>`).join('')}</div>`;
+const stepper = () => `<div class="stepper"><button data-act="min" data-arg="-1" aria-label="min">−</button><output>${S.roundMin} min</output><button data-act="min" data-arg="1" aria-label="plus">+</button></div>`;
+
+function teamCol(side, names, sc, lead, locked) {
+  const t = side === 0 ? 'A' : 'B';
+  return `<section class="team ${t}${lead ? ' lead' : ''}">
+    <div class="th">TEAM ${t}</div>
+    <div class="members">${names.map(n => `<div>${av(n, 36)}<span>${esc(n)}</span></div>`).join('')}</div>
+    <div class="score">${sc}</div>
+    <div class="pts">${[1, 2, 3, 4, 5, 6].map(p => `<button data-act="mene" data-arg="${side}:${p}" ${locked ? 'disabled' : ''} aria-label="Team ${t} plus ${p}">+${p}</button>`).join('')}</div>
+  </section>`;
+}
+function viewRound() {
+  const i = S.current, r = S.rounds[i], s = sched(i);
+  const [sa, sb] = score(r);
+  const locked = sa >= S.target || sb >= S.target;
+  let run = 0;
+  const chips = r.menes.map((m, k) => {
+    run = run || [0, 0]; run[m.t] += m.p;
+    return `<div class="m ${m.t ? 'B' : 'A'}"><b>+${m.p}</b>${run[0]}–${run[1]}</div>`;
+  }).join('');
+  const dots = S.rounds.map((x, k) => `<i class="${k === i ? 'cur' : x.status !== 'open' ? 'done' : ''}"></i>`).join('');
+  const next = i + 1 < ROUNDS ? sched(i + 1) : null;
+  return `
+    <div class="rhead"><span class="rn">Ronde ${i + 1} van ${ROUNDS}</span><span class="note">tot ${S.target}</span><div class="dots">${dots}</div></div>
+    <div class="timer" id="timer">
+      <div class="t" id="tdig">${fmtClock(remaining(r))}</div>
+      <button id="tplay" data-act="timer" aria-label="start of pauze">${r.since ? ICON.pause : ICON.play}</button>
+      <button class="sec" data-act="treset" aria-label="reset">${ICON.reset}</button>
+    </div>
+    ${s.rest ? `<div class="rest">${av(s.rest, 34)}<span>Rust deze ronde: <b>${esc(s.rest)}</b></span></div>` : ''}
+    <div class="teams">
+      ${teamCol(0, s.a, sa, sa > sb, locked)}
+      ${teamCol(1, s.b, sb, sb > sa, locked)}
+    </div>
+    <div class="menes">
+      <div class="mlist" id="mlist">${chips || '<span class="empty">Nog geen mènes gespeeld</span>'}</div>
+      <button class="undo" data-act="undo" ${r.menes.length ? '' : 'disabled'}>${ICON.undo}Undo</button>
+    </div>
+    <div class="ractions">
+      <button class="btn ghost" data-act="close">Ronde afsluiten</button>
+      <button class="btn ghost" data-act="next">${next ? `Hierna: ronde ${i + 2}` : 'Laatste ronde'}</button>
+    </div>`;
+}
+function standingsList(st, opts = {}) {
+  const n = st.list.length;
+  const hot = new Set(streakers().map(p => p.name));
+  return `<ol class="st">${st.list.map((p, k) => {
+    const badges = (p.fanny ? `<span class="badge">FANNY${p.fanny > 1 ? ' ×' + p.fanny : ''}</span>` : '')
+      + (hot.has(p.name) ? '<span class="badge feu">EN FEU</span>' : '')
+      + (S.finished && k === n - 1 && n > 1 && p.played ? `<span class="loser" title="Hekkensluiter">${CROWN}</span>` : '');
+    const wl = `${p.w}W ${p.l}V${p.d ? ' ' + p.d + 'G' : ''}`;
+    return `<li class="${k === 0 && p.played ? 'first' : ''}">
+      <span class="pos">${k + 1}</span>${av(p.name, 44)}
+      <span class="nm">${esc(p.name)}${badges}<span class="sub">${wl} · ${p.pf}–${p.pa} · ${p.played} ${p.played === 1 ? 'ronde' : 'rondes'}</span></span>
+      <span class="avg"><b>${sgnDec(p.avg)}</b><small>totaal ${sgn(p.tot)}</small></span>
+    </li>`;
+  }).join('')}</ol>`;
+}
+function viewStand() {
+  const st = standings(true);
+  const played = st.rounds.length;
+  return `<h2>Klassement · Baan ${lane}</h2>
+    ${st.live ? `<div class="livebar">Inclusief de lopende ronde ${S.current + 1} (voorlopig)</div>` : ''}
+    <div class="card">
+      ${played ? '' : '<p class="note" style="margin:0 0 6px">Nog geen rondes gespeeld.</p>'}
+      ${standingsList(st)}
+      <div class="legend">Groot getal = gemiddeld saldo per gespeelde ronde (hierop wordt gesorteerd). Daaronder het totale saldo. Gelijk? Dan telt het totaal aantal gescoorde punten, daarna het onderlinge resultaat.</div>
+    </div>
+    <h2>Uitslagen per ronde</h2>
+    ${S.rounds.map((r, i) => resultCard(r, i)).join('')}`;
+}
+function resultCard(r, i) {
+  const s = sched(i), [sa, sb] = score(r);
+  const cur = !S.finished && S.started && i === S.current;
+  const status = r.status === 'done' ? 'Gespeeld' : r.status === 'skipped' ? 'Overgeslagen' : cur ? 'Bezig' : S.finished ? 'Niet gespeeld' : i === S.current + 1 ? 'Volgende' : 'Komt nog';
+  const showScore = r.status === 'done' || (cur && r.menes.length);
+  const tm = (names, cls, win) => `<div class="tm ${cls}${win ? ' win' : ''}"><div class="avrow">${names.map(n => av(n, 28)).join('')}</div>${names.map(esc).join(', ')}</div>`;
+  return `<div class="card res ${r.status === 'done' ? 'done' : cur ? 'cur' : ''}">
+    <div class="rh"><h3>Ronde ${i + 1}</h3><span class="chip ${cur ? 'cur' : ''}">${status}</span></div>
+    <div class="vs">
+      ${tm(s.a, '', r.status === 'done' && sa > sb)}
+      <div class="sc">${showScore ? `${sa}–${sb}` : 'vs'}</div>
+      ${tm(s.b, 'r', r.status === 'done' && sb > sa)}
+    </div>
+    ${s.rest ? `<div class="rs">Rust: ${esc(s.rest)}</div>` : ''}
+  </div>`;
+}
+function viewMeer() {
+  const started = S.started && S.startedAt ? new Date(S.startedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : null;
+  return `<div class="set"><h2>Instellingen · Baan ${lane}</h2>
+    <div class="card"><div class="lbl">Doelscore</div>${segTarget()}</div>
+    <div class="card"><div class="lbl">Rondetijd</div>${stepper()}</div>
+    ${S.started ? `<div class="card"><div class="lbl">Klok van het uitje</div>
+      <p class="note" style="margin:0">Gestart om ${started}, duur ${EVENT_MIN} minuten.</p>
+      <button class="btn ghost" data-act="eventReset">Uitjesklok opnieuw starten</button></div>` : ''}
+    <div class="card"><div class="lbl">Toernooi</div>
+      ${S.finished
+        ? `<button class="btn ghost" data-act="unfinish">Eindstand terugdraaien</button>`
+        : `<button class="btn navy" data-act="finishNow" ${S.started ? '' : 'disabled'}>Eindstand nu</button>
+           <p class="note" style="margin:0">Sluit het toernooi nu af, bijvoorbeeld als ronde 4 niet meer past.</p>`}
+    </div>
+    <div class="card"><div class="lbl">Baan</div>
+      <button class="btn ghost" data-act="switchLane">Wissel van baan</button>
+      <button class="btn danger" data-act="resetLane">Reset baan ${lane}</button>
+      <p class="note" style="margin:0">Wisselen bewaart de stand van deze baan. Reset wist alle scores van baan ${lane} op deze telefoon.</p>
+    </div></div>`;
+}
+
+// ---------- render ----------
+const $ = id => document.getElementById(id);
+function render() {
+  const app = $('app');
+  const main = document.querySelector('main');
+  const keep = main && app.dataset.tab === tab ? main.scrollTop : 0;
+  if (!lane) {
+    app.className = 'dark';
+    app.innerHTML = topbar() + `<main>${viewLanes()}</main>`;
+    app.dataset.tab = '';
+    return;
+  }
+  const body = tab === 'stand' ? viewStand() : tab === 'meer' ? viewMeer()
+    : S.finished ? viewEnd() : S.started ? viewRound() : viewStart();
+  app.className = tab === 'ronde' ? 'dark' : 'light';
+  app.innerHTML = topbar() + `<main>${body}</main>` + nav();
+  app.dataset.tab = tab;
+  document.querySelector('main').scrollTop = keep;
+  const ml = $('mlist'); if (ml) ml.scrollLeft = ml.scrollWidth;
+  tick();
+}
+
+// ---------- modal ----------
+function ask(title, text, buttons) {
+  const m = $('modal');
+  m.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><h3>${title}</h3>${text ? `<p>${text}</p>` : ''}
+    <div class="btns">${buttons.map((b, k) => `<button class="btn ${b.cls || 'ghost'}" data-k="${k}">${b.label}</button>`).join('')}</div></div>`;
+  m.hidden = false;
+  m.onclick = e => {
+    const el = e.target.closest('[data-k]');
+    if (!el && e.target !== m) return;
+    m.hidden = true; m.innerHTML = '';
+    const b = el ? buttons[+el.dataset.k] : null;
+    if (b && b.fn) b.fn();
+  };
+}
+const cancel = { label: 'Annuleren', cls: 'ghost' };
+
+// ---------- acties ----------
+function setLane(l) { lane = l; ls.set('jdb_lane', l); S = loadLane(l); tab = 'ronde'; render(); }
+function closeRound(opts = {}) {
+  const i = S.current, r = S.rounds[i], s = sched(i);
+  const [sa, sb] = score(r);
+  if (r.since) { r.acc += Date.now() - r.since; r.since = null; }
+  if (!r.menes.length) r.status = 'skipped';
+  else r.status = 'done';
+  S.current = i + 1;
+  if (S.current >= ROUNDS) S.finished = true;
+  save();
+  if (!opts.silent) afterClose(i, sa, sb);
+  render();
+}
+function resultText(sa, sb) {
+  return sa === sb ? `Gelijkspel ${sa}–${sb}` : `Team ${sa > sb ? 'A' : 'B'} wint ${Math.max(sa, sb)}–${Math.min(sa, sb)}`;
+}
+function askClose(reason) {
+  const r = S.rounds[S.current];
+  const [sa, sb] = score(r);
+  if (!r.menes.length) {
+    return ask('Ronde overslaan?', 'Er is nog niet gescoord. De ronde telt dan niet mee in het klassement.', [
+      { label: 'Ronde overslaan', cls: 'navy', fn: () => closeRound() }, cancel]);
+  }
+  const head = reason === 'time' ? 'Tijd is op!' : reason === 'target' ? `Team ${sa > sb ? 'A' : 'B'} heeft ${Math.max(sa, sb)}!` : 'Ronde afsluiten?';
+  const extra = reason === 'time' ? ' Wie voorstaat wint; gelijk blijft gelijk.' : '';
+  const btns = [{ label: `Afsluiten: ${resultText(sa, sb)}`, cls: 'primary', fn: () => closeRound() }];
+  if (reason === 'target') btns.push({ label: 'Vergissing: laatste mène terug', fn: () => { r.menes.pop(); save(); render(); } });
+  btns.push({ label: reason === 'time' ? 'Laatste mène nog invoeren' : 'Nog niet', cls: 'ghost' });
+  ask(head, `Uitslag ronde ${S.current + 1}: <b>${resultText(sa, sb)}</b>.${extra}`, btns);
+}
+const ACT = {
+  title: () => onTitleTap(),
+  tab: a => { tab = a; render(); },
+  pickLane: a => setLane(+a),
+  target: a => { S.target = +a; save(); render(); },
+  min: a => {
+    S.roundMin = Math.max(5, Math.min(40, S.roundMin + +a)); save(); render();
+  },
+  start: () => {
+    S.started = true; S.startedAt = Date.now(); save(); wake(); render();
+  },
+  timer: () => {
+    const r = S.rounds[S.current];
+    if (r.since) { r.acc += Date.now() - r.since; r.since = null; }
+    else if (remaining(r) > 0) { r.since = Date.now(); r.timeUp = false; wake(); }
+    save(); render();
+  },
+  treset: () => ask('Timer resetten?', `De klok van ronde ${S.current + 1} gaat terug naar ${S.roundMin}:00. De score blijft staan.`, [
+    { label: 'Reset timer', cls: 'navy', fn: () => { const r = S.rounds[S.current]; r.acc = 0; r.since = null; r.timeUp = false; save(); render(); } }, cancel]),
+  mene: a => {
+    const [t, p] = a.split(':').map(Number);
+    const r = S.rounds[S.current];
+    const before = score(r);
+    if (before[0] >= S.target || before[1] >= S.target) return;
+    r.menes.push({ t, p });
+    save(); wake(); render();
+    vibrate(30);
+    const sc = score(r);
+    onMene(t, p, sc);
+    if (sc[t] >= S.target) setTimeout(() => askClose('target'), 350);
+  },
+  undo: () => {
+    const r = S.rounds[S.current];
+    if (!r.menes.length) return;
+    r.menes.pop(); save(); render();
+  },
+  close: () => askClose(),
+  next: () => {
+    const i = S.current + 1;
+    if (i >= ROUNDS) return ask('Dit is de laatste ronde', 'Na deze ronde volgt de eindstand.', [{ label: 'Oké', cls: 'primary' }]);
+    const s = sched(i);
+    ask(`Volgende: ronde ${i + 1}`, `<b>Team A:</b> ${s.a.map(esc).join(', ')}<br><b>Team B:</b> ${s.b.map(esc).join(', ')}${s.rest ? `<br><b>Rust:</b> ${esc(s.rest)}` : ''}`, [{ label: 'Oké', cls: 'primary' }]);
+  },
+  finishNow: () => {
+    const r = S.rounds[S.current];
+    const [sa, sb] = score(r);
+    const done = () => { S.finished = true; save(); tab = 'ronde'; render(); onFinish(); };
+    if (r && r.menes.length) {
+      ask('Eindstand nu?', `Ronde ${S.current + 1} is nog bezig (${sa}–${sb}). Wat doen we met die ronde?`, [
+        { label: `Meetellen: ${resultText(sa, sb)}`, cls: 'primary', fn: () => { closeRound({ silent: true }); if (!S.finished) done(); else { save(); render(); onFinish(); } } },
+        { label: 'Niet meetellen', cls: 'navy', fn: done }, cancel]);
+    } else {
+      ask('Eindstand nu?', 'Het toernooi wordt afgesloten met de rondes die gespeeld zijn.', [
+        { label: 'Ja, eindstand tonen', cls: 'primary', fn: done }, cancel]);
+    }
+  },
+  unfinish: () => ask('Eindstand terugdraaien?', 'Het toernooi gaat verder waar het gebleven was.', [
+    { label: 'Ja, verder spelen', cls: 'primary', fn: () => {
+      S.finished = false;
+      if (S.current >= ROUNDS) { S.current = ROUNDS - 1; S.rounds[S.current].status = 'open'; }
+      save(); render();
+    } }, cancel]),
+  eventReset: () => ask('Uitjesklok opnieuw starten?', `De ${EVENT_MIN} minuten beginnen opnieuw vanaf nu.`, [
+    { label: 'Opnieuw starten', cls: 'navy', fn: () => { S.startedAt = Date.now(); save(); render(); } }, cancel]),
+  switchLane: () => ask('Wissel van baan?', `De stand van baan ${lane} blijft bewaard op deze telefoon.`, [
+    { label: 'Andere baan kiezen', cls: 'navy', fn: () => { lane = null; S = null; ls.del('jdb_lane'); render(); } }, cancel]),
+  resetLane: () => ask(`Baan ${lane} resetten?`, 'Alle scores, rondes en de klok van deze baan worden gewist. Dit kan niet ongedaan worden.', [
+    { label: `Ja, wis baan ${lane}`, cls: 'navy', fn: () => ask('Zeker weten?', 'Laatste kans: alles van deze baan gaat weg.', [
+      { label: 'Definitief resetten', cls: 'navy', fn: () => { ls.del('jdb_baan' + lane); S = fresh(lane); tab = 'ronde'; render(); } }, cancel]) },
+    cancel]),
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  ACT[el.dataset.act] && ACT[el.dataset.act](el.dataset.arg);
+});
+
+// ---------- klokken ----------
+let lastBuzz = null;
+function tick() {
+  if (!lane || !S || !S.started) return;
+  const c = $('clock');
+  if (c) {
+    const rem = EVENT_MIN * 60000 - (Date.now() - S.startedAt);
+    const fit = Math.max(0, Math.floor(rem / (S.roundMin * 60000)));
+    c.innerHTML = rem > 0
+      ? `<b>Uitje ${fmtClock(rem)}</b><small>nog ±${fit} ${fit === 1 ? 'ronde' : 'rondes'}</small>`
+      : `<b>Uitje voorbij</b><small>${fmtClock(rem)} over tijd</small>`;
+  }
+  if (S.finished) return;
+  const r = S.rounds[S.current];
+  let rem = remaining(r);
+  if (r.since && rem <= 0) {
+    r.acc = S.roundMin * 60000; r.since = null; rem = 0;
+    save();
+    vibrate([400, 150, 400, 150, 600]);
+    if (!r.timeUp) { r.timeUp = true; save(); if (tab === 'ronde') { render(); askClose('time'); } }
+  }
+  const t = $('timer');
+  if (t) {
+    $('tdig').textContent = fmtClock(Math.max(0, rem));
+    t.className = 'timer' + (rem <= 0 ? ' over' : rem <= 30000 ? ' crit' : rem <= 120000 ? ' warn' : '');
+  }
+  if (r.since && rem <= 30000) {
+    const s = Math.ceil(rem / 1000);
+    if (s !== lastBuzz && (s === 30 || s % 5 === 0 || s <= 5)) { vibrate(s <= 5 ? 120 : [80, 60, 80]); }
+    lastBuzz = s;
+  }
+}
+setInterval(tick, 250);
+
+// ---------- wake lock ----------
+let lock = null;
+async function wake() {
+  try {
+    if ('wakeLock' in navigator && !lock && document.visibilityState === 'visible' && S && S.started && !S.finished) {
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => { lock = null; });
+    }
+  } catch (e) { lock = null; }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { wake(); render(); } });
+document.addEventListener('pointerdown', () => { if (!lock) wake(); }, { passive: true });
+
+// ---------- easter eggs ----------
+// Alles is visueel (telefoon staat vaak op stil) en blokkeert nooit een knop.
+const fxQueue = [];
+let fxBusy = false;
+function fx(html, ms = 1600, cls = '', important = false) {
+  if (!important && fxQueue.length >= 1) return; // geen file van animaties bij snel tikken
+  fxQueue.push({ html, ms, cls });
+  if (!fxBusy) nextFx();
+}
+function nextFx() {
+  const f = fxQueue.shift();
+  if (!f) { fxBusy = false; return; }
+  fxBusy = true;
+  const el = document.createElement('div');
+  el.className = 'fx ' + f.cls;
+  el.style.setProperty('--ms', f.ms + 'ms');
+  el.innerHTML = `<div class="fxin">${f.html}</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => { el.remove(); nextFx(); }, f.ms);
+}
+function toast(text) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1900);
+}
+const COMMENTS = ['Magnifique !', 'Oh là là !', 'Tirez !', 'Bien joué !', 'Formidable !', 'Pointez !', 'Quel tir !', 'Allez, allez !'];
+const BOULE = '<svg class="carreau" viewBox="0 0 220 80"><circle class="b1" cx="40" cy="40" r="28"/><circle class="b2" cx="150" cy="40" r="28"/><circle cx="205" cy="62" r="7" fill="#fff"/></svg>';
+function onMene(t, p, sc) {
+  let big = false;
+  if (p === 6) { fx('<b class="huge">Sextuplé !</b><span>6 punten in één mène</span>', 1900, 'pop'); big = true; }
+  else if (Math.random() < 0.10) { fx(`${BOULE}<b class="huge">Carreau !</b>`, 1700, 'pop'); big = true; }
+  if (sc[0] === sc[1]) fx(`<b class="big">Égalité</b><span>${sc[0]}–${sc[1]}</span>`, 1300, 'soft');
+  else if (!big && Math.random() < 0.2) toast(COMMENTS[Math.floor(Math.random() * COMMENTS.length)]);
+}
+const names = list => list.map(esc).join(', ').replace(/, ([^,]*)$/, ' en $1');
+function afterClose(i, sa, sb) {
+  if (sa !== sb && Math.min(sa, sb) === 0) {
+    const losers = sa === 0 ? sched(i).a : sched(i).b;
+    fx(`<b class="huge fanny">FANNY !</b><div class="fxav">${losers.map(n => av(n, 64)).join('')}</div><span>${names(losers)} verliezen met 0 punten</span>`, 3200, 'pop', true);
+  } else if (sa === sb) {
+    fx(`<b class="big">Égalité</b><span>Ronde ${i + 1} eindigt gelijk: ${sa}–${sb}</span>`, 1800, 'soft');
+  }
+  const hot = streakers().filter(p => p.lastRound === i);
+  if (hot.length) fx(`<b class="huge feu">En feu !</b><div class="fxav">${hot.map(p => av(p.name, 64)).join('')}</div><span>${names(hot.map(p => p.name))}: ${hot[0].streak} rondes op rij gewonnen</span>`, 2600, 'pop fire', true);
+  if (S.finished) onFinish();
+}
+// Spelers die minstens 3 gespeelde rondes op rij hebben gewonnen, tot en met hun laatste ronde.
+function streakers() {
+  return standings(false).list.map(p => {
+    let n = 0;
+    for (let k = p.seq.length - 1; k >= 0 && p.seq[k].res === 'W'; k--) n++;
+    return { name: p.name, streak: n, lastRound: p.seq.length ? p.seq[p.seq.length - 1].i : -1 };
+  }).filter(p => p.streak >= 3);
+}
+function onFinish() {
+  tab = 'ronde';
+  render();
+  confetti();
+}
+let taps = [];
+function onTitleTap() {
+  const now = Date.now();
+  taps = taps.filter(t => now - t < 3000).concat(now);
+  if (taps.length >= 7) {
+    taps = [];
+    const on = !document.documentElement.classList.contains('retro');
+    document.documentElement.classList.toggle('retro', on);
+    ls.set('jdb_retro', on ? '1' : '');
+    toast(on ? 'Mode rétro ★' : 'Retour au présent');
+  }
+}
+if (ls.get('jdb_retro')) document.documentElement.classList.add('retro');
+
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = document.createElement('canvas');
+  cv.className = 'confetti';
+  document.body.appendChild(cv);
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  const W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr;
+  const g = cv.getContext('2d');
+  const cols = ['#009ADC', '#FFFFFF', '#EDF0F4', '#009ADC'];
+  const ps = Array.from({ length: 160 }, () => ({
+    x: Math.random() * W, y: -Math.random() * H * 0.6, vx: (Math.random() - .5) * 3 * dpr, vy: (2 + Math.random() * 4) * dpr,
+    s: (6 + Math.random() * 8) * dpr, r: Math.random() * 6, vr: (Math.random() - .5) * .3, c: cols[Math.floor(Math.random() * cols.length)],
+  }));
+  const t0 = performance.now();
+  (function frame(t) {
+    g.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      p.x += p.vx; p.y += p.vy; p.r += p.vr; p.vy += 0.03 * dpr;
+      g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.fillStyle = p.c;
+      g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); g.restore();
+    }
+    if (t - t0 < 4500) requestAnimationFrame(frame); else cv.remove();
+  })(t0);
+}
+
+// ---------- eindscherm ----------
+const CROWN = '<svg class="crown" viewBox="0 0 24 18" aria-hidden="true"><path d="M2 16h20l-2-11-5 5-3-8-3 8-5-5z" fill="currentColor"/></svg>';
+function viewEnd() {
+  const st = standings(false);
+  const top = st.list.filter(p => p.played).slice(0, 3);
+  const podium = top.length ? `<div class="podium">${[1, 0, 2].filter(k => top[k]).map(k => `
+      <div class="pod p${k + 1}">${k === 0 ? `<span class="crownw">${CROWN}</span>` : ''}${av(top[k].name, k === 0 ? 104 : 76)}
+        <b>${esc(top[k].name)}</b><span>${k + 1}e · ${sgnDec(top[k].avg)}</span></div>`).join('')}</div>`
+    : '<p class="note" style="text-align:center">Er zijn geen rondes gespeeld.</p>';
+  return `<div class="end">
+    <div class="endhead"><span>Eindstand baan ${lane}</span><h1>${top.length ? 'Het winnende trio' : 'Eindstand'}</h1></div>
+    ${podium}
+    <button class="btn primary" data-act="saveImg" style="margin:16px 0 14px">Opslaan als afbeelding</button>
+    <div class="card">${standingsList(st)}</div>
+    ${S.rounds.map((r, i) => resultCard(r, i)).join('')}
+  </div>`;
+}
+ACT.saveImg = async () => {
+  toast('Afbeelding maken…');
+  try {
+    const blob = await renderImage();
+    const file = new File([blob], `jeu-de-boules-baan${lane}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: `Eindstand baan ${lane}` }); return; }
+      catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (e) { ask('Dat lukte niet', 'Maak anders een screenshot van dit scherm.', [{ label: 'Oké', cls: 'primary' }]); }
+};
+const loadImg = src => new Promise(res => {
+  if (missing.has(src)) return res(null);
+  const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src;
+});
+async function renderImage() {
+  const st = standings(false), list = st.list;
+  const W = 1080, ROW = 104, HEAD = 250, POD = 440;
+  const H = HEAD + POD + 40 + list.length * ROW + 120;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  const F = (s, w = 800) => `${w} ${s}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
+  const NAVY = '#0D2950', BLUE = '#009ADC';
+  const imgs = Object.fromEntries(await Promise.all(list.map(async p => [p.name, await loadImg(photo(lane, p.name))])));
+  const avatar = (n, x, y, r, ring) => {
+    g.save(); g.beginPath(); g.arc(x, y, r + ring, 0, 7); g.fillStyle = '#fff'; g.fill();
+    g.beginPath(); g.arc(x, y, r, 0, 7); g.clip();
+    const im = imgs[n];
+    if (im) {
+      const s = Math.min(im.width, im.height);
+      g.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, x - r, y - r, 2 * r, 2 * r);
+    } else {
+      g.fillStyle = BLUE; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+      g.fillStyle = '#fff'; g.font = F(r, 900); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(n[0], x, y + r * .05);
+    }
+    g.restore();
+  };
+  g.fillStyle = NAVY; g.fillRect(0, 0, W, H);
+  g.fillStyle = BLUE; g.fillRect(0, 0, W, 16);
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = '#fff';
+  g.font = F(76, 900); g.fillText('Jeu de Boules', W / 2, 120);
+  const d = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+  g.font = F(40); g.fillText(`Eindstand baan ${lane} · ${d}`, W / 2, 185);
+  const top = list.filter(p => p.played).slice(0, 3);
+  const spots = [[W / 2, HEAD + 150, 120], [W / 2 - 330, HEAD + 200, 90], [W / 2 + 330, HEAD + 200, 90]];
+  top.forEach((p, k) => {
+    const [x, y, r] = spots[k];
+    avatar(p.name, x, y, r, 8);
+    g.fillStyle = '#fff'; g.textAlign = 'center';
+    g.font = F(k ? 40 : 50, 900); g.fillText(p.name, x, y + r + 62);
+    g.font = F(34); g.fillText(`${k + 1}e · ${sgnDec(p.avg)}`, x, y + r + 106);
+    if (k === 0) {
+      g.fillStyle = BLUE; g.beginPath();
+      const cx = x, cy = y - r - 40;
+      g.moveTo(cx - 56, cy + 30); g.lineTo(cx + 56, cy + 30); g.lineTo(cx + 66, cy - 26); g.lineTo(cx + 28, cy + 2);
+      g.lineTo(cx, cy - 40); g.lineTo(cx - 28, cy + 2); g.lineTo(cx - 66, cy - 26); g.closePath(); g.fill();
+    }
+  });
+  let y0 = HEAD + POD + 20;
+  g.fillStyle = '#fff'; roundRect(g, 40, y0, W - 80, list.length * ROW + 30, 28); g.fill();
+  list.forEach((p, k) => {
+    const y = y0 + 15 + k * ROW + ROW / 2;
+    if (k) { g.fillStyle = '#EDF0F4'; g.fillRect(70, y - ROW / 2, W - 140, 3); }
+    g.fillStyle = NAVY; g.textBaseline = 'middle'; g.textAlign = 'center';
+    g.font = F(40, 900); g.fillText(String(k + 1), 105, y);
+    avatar(p.name, 190, y, 36, 3);
+    g.textAlign = 'left'; g.fillStyle = NAVY;
+    g.font = F(38, 900); g.fillText(p.name + (p.fanny ? '  · Fanny' : ''), 250, y - 16);
+    g.font = F(26, 700); g.fillText(`${p.w}W ${p.l}V${p.d ? ' ' + p.d + 'G' : ''} · ${p.pf}–${p.pa} · ${p.played} rondes`, 250, y + 24);
+    g.textAlign = 'right';
+    g.font = F(44, 900); g.fillText(sgnDec(p.avg), W - 80, y - 12);
+    g.font = F(24, 800); g.fillText(`totaal ${sgn(p.tot)}`, W - 80, y + 28);
+  });
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = F(28, 700);
+  g.fillText('Gesorteerd op gemiddeld saldo per gespeelde ronde', W / 2, H - 50);
+  return new Promise((res, rej) => cv.toBlob(b => (b ? res(b) : rej(new Error('toBlob'))), 'image/png'));
+}
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+
+render();
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>
