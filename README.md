@@ -23,7 +23,7 @@ Verkeerde baan gekozen? **Instellingen → Wissel van baan** (de stand blijft be
 - Saldo per partij = puntenverschil (13–5: winnaars +8, verliezers −8). Gelijkspel = 0.
 - Sortering op **totaal saldo** (alle partijen opgeteld), daarna aantal gewonnen partijen, daarna totaal gescoorde punten, daarna onderling resultaat.
 - Er is geen maximum aantal partijen. Na partij 4 begint het schema weer bij partij 1.
-- Bij 7 spelers rust er elke partij één speler, om de beurt. Rusten kost niks: het saldo blijft die partij staan.
+- Alle banen hebben 6 spelers: iedereen speelt elke partij, niemand rust.
 - De lopende partij telt live mee (voorlopig) zodra er gescoord is.
 - Een partij die zonder score wordt afgesloten telt als overgeslagen.
 
@@ -34,31 +34,29 @@ Zet per speler een vierkante foto (jpg, ±400×400 px) in de juiste map. Precies
 | Speler | Bestand |
 |---|---|
 | Stefen | `players/baan1/stefen.jpg` |
-| Arie | `players/baan1/arie.jpg` |
 | Hanna G | `players/baan1/hanna-g.jpg` |
 | Juliëtte | `players/baan1/juliette.jpg` |
 | Joost | `players/baan1/joost.jpg` |
 | Gordon | `players/baan1/gordon.jpg` |
+| Ardin | `players/baan1/ardin.jpg` |
 | Bert | `players/baan2/bert.jpg` |
 | Renata | `players/baan2/renata.jpg` |
 | Niels | `players/baan2/niels.jpg` |
 | Gert | `players/baan2/gert.jpg` |
-| Marcel | `players/baan2/marcel.jpg` |
 | Emil | `players/baan2/emil.jpg` |
 | Pieter Jan | `players/baan2/pieter-jan.jpg` |
 | Myrna | `players/baan3/myrna.jpg` |
-| Roos | `players/baan3/roos.jpg` |
 | Roxanne | `players/baan3/roxanne.jpg` |
 | Bartjan | `players/baan3/bartjan.jpg` |
 | Louis | `players/baan3/louis.jpg` |
 | Ronnie | `players/baan3/ronnie.jpg` |
 | Annika | `players/baan3/annika.jpg` |
-| Ardin | `players/baan4/ardin.jpg` |
-| Mark | `players/baan4/mark.jpg` |
 | Johan | `players/baan4/johan.jpg` |
 | Hanna K | `players/baan4/hanna-k.jpg` |
+| Marcel | `players/baan4/marcel.jpg` |
 | Bart | `players/baan4/bart.jpg` |
 | Abby | `players/baan4/abby.jpg` |
+| Roos | `players/baan4/roos.jpg` |
 
 Ontbreekt een foto, dan toont de app een gekleurde cirkel met de eerste letter.
 Let op: de site is publiek, dus foto's in deze repo zijn voor iedereen met de link (en zoekmachines) te zien.
@@ -70,37 +68,37 @@ tegenstanders zo gelijk mogelijk verdeeld, bij 7 spelers rust iedereen hooguit �
 Opnieuw genereren: `python3 tools/schema.py --js` en het `SCHEDULE`-blok in `index.html` vervangen.
 
 ```
-BAAN 1  (6 spelers: Stefen, Arie, Hanna G, Juliëtte, Joost, Gordon)
-  Partij 1:  Stefen + Arie + Hanna G  vs  Juliëtte + Joost + Gordon
-  Partij 2:  Stefen + Arie + Juliëtte  vs  Hanna G + Joost + Gordon
-  Partij 3:  Stefen + Hanna G + Joost  vs  Arie + Juliëtte + Gordon
-  Partij 4:  Stefen + Juliëtte + Joost  vs  Arie + Hanna G + Gordon
+BAAN 1  (6 spelers: Stefen, Hanna G, Juliëtte, Joost, Gordon, Ardin)
+  Partij 1:  Stefen + Hanna G + Juliëtte  vs  Joost + Gordon + Ardin
+  Partij 2:  Stefen + Hanna G + Joost  vs  Juliëtte + Gordon + Ardin
+  Partij 3:  Stefen + Juliëtte + Gordon  vs  Hanna G + Joost + Ardin
+  Partij 4:  Stefen + Joost + Gordon  vs  Hanna G + Juliëtte + Ardin
   Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 2x: 12
-  Partijen gespeeld: Stefen 4, Arie 4, Hanna G 4, Juliëtte 4, Joost 4, Gordon 4
+  Partijen gespeeld: Stefen 4, Hanna G 4, Juliëtte 4, Joost 4, Gordon 4, Ardin 4
 
-BAAN 2  (7 spelers: Bert, Renata, Niels, Gert, Marcel, Emil, Pieter Jan)
-  Partij 1:  Bert + Renata + Gert  vs  Marcel + Emil + Pieter Jan   | rust: Niels
-  Partij 2:  Bert + Niels + Marcel  vs  Renata + Emil + Pieter Jan   | rust: Gert
-  Partij 3:  Bert + Niels + Emil  vs  Gert + Marcel + Pieter Jan   | rust: Renata
-  Partij 4:  Bert + Renata + Pieter Jan  vs  Niels + Gert + Emil   | rust: Marcel
-  Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 1x: 12, 2x: 6
-  Partijen gespeeld: Bert 4, Renata 3, Niels 3, Gert 3, Marcel 3, Emil 4, Pieter Jan 4
-
-BAAN 3  (7 spelers: Myrna, Roos, Roxanne, Bartjan, Louis, Ronnie, Annika)
-  Partij 1:  Roos + Roxanne + Bartjan  vs  Louis + Ronnie + Annika   | rust: Myrna
-  Partij 2:  Myrna + Roos + Louis  vs  Bartjan + Ronnie + Annika   | rust: Roxanne
-  Partij 3:  Myrna + Roos + Ronnie  vs  Roxanne + Louis + Annika   | rust: Bartjan
-  Partij 4:  Myrna + Roxanne + Ronnie  vs  Roos + Bartjan + Louis   | rust: Annika
-  Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 1x: 12, 2x: 6
-  Partijen gespeeld: Myrna 3, Roos 4, Roxanne 3, Bartjan 3, Louis 4, Ronnie 4, Annika 3
-
-BAAN 4  (6 spelers: Ardin, Mark, Johan, Hanna K, Bart, Abby)
-  Partij 1:  Ardin + Mark + Johan  vs  Hanna K + Bart + Abby
-  Partij 2:  Ardin + Mark + Hanna K  vs  Johan + Bart + Abby
-  Partij 3:  Ardin + Johan + Bart  vs  Mark + Hanna K + Abby
-  Partij 4:  Ardin + Hanna K + Bart  vs  Mark + Johan + Abby
+BAAN 2  (6 spelers: Bert, Renata, Niels, Gert, Emil, Pieter Jan)
+  Partij 1:  Bert + Renata + Niels  vs  Gert + Emil + Pieter Jan
+  Partij 2:  Bert + Renata + Gert  vs  Niels + Emil + Pieter Jan
+  Partij 3:  Bert + Niels + Emil  vs  Renata + Gert + Pieter Jan
+  Partij 4:  Bert + Gert + Emil  vs  Renata + Niels + Pieter Jan
   Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 2x: 12
-  Partijen gespeeld: Ardin 4, Mark 4, Johan 4, Hanna K 4, Bart 4, Abby 4
+  Partijen gespeeld: Bert 4, Renata 4, Niels 4, Gert 4, Emil 4, Pieter Jan 4
+
+BAAN 3  (6 spelers: Myrna, Roxanne, Bartjan, Louis, Ronnie, Annika)
+  Partij 1:  Myrna + Roxanne + Bartjan  vs  Louis + Ronnie + Annika
+  Partij 2:  Myrna + Roxanne + Louis  vs  Bartjan + Ronnie + Annika
+  Partij 3:  Myrna + Bartjan + Ronnie  vs  Roxanne + Louis + Annika
+  Partij 4:  Myrna + Louis + Ronnie  vs  Roxanne + Bartjan + Annika
+  Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 2x: 12
+  Partijen gespeeld: Myrna 4, Roxanne 4, Bartjan 4, Louis 4, Ronnie 4, Annika 4
+
+BAAN 4  (6 spelers: Johan, Hanna K, Marcel, Bart, Abby, Roos)
+  Partij 1:  Johan + Hanna K + Marcel  vs  Bart + Abby + Roos
+  Partij 2:  Johan + Hanna K + Bart  vs  Marcel + Abby + Roos
+  Partij 3:  Johan + Marcel + Abby  vs  Hanna K + Bart + Roos
+  Partij 4:  Johan + Bart + Abby  vs  Hanna K + Marcel + Roos
+  Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 2x: 12
+  Partijen gespeeld: Johan 4, Hanna K 4, Marcel 4, Bart 4, Abby 4, Roos 4
 ```
 
 Bij 6 spelers is "12 paren 2× samen, 3 paren nooit" wiskundig het beste wat in 4 rondes kan (de zoektocht controleert alle mogelijkheden).

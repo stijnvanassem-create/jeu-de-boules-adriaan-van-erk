@@ -19,10 +19,10 @@ import random
 import sys
 
 BANEN = {
-    1: ["Stefen", "Arie", "Hanna G", "Juliëtte", "Joost", "Gordon"],
-    2: ["Bert", "Renata", "Niels", "Gert", "Marcel", "Emil", "Pieter Jan"],
-    3: ["Myrna", "Roos", "Roxanne", "Bartjan", "Louis", "Ronnie", "Annika"],
-    4: ["Ardin", "Mark", "Johan", "Hanna K", "Bart", "Abby"],
+    1: ["Stefen", "Hanna G", "Juliëtte", "Joost", "Gordon", "Ardin"],
+    2: ["Bert", "Renata", "Niels", "Gert", "Emil", "Pieter Jan"],
+    3: ["Myrna", "Roxanne", "Bartjan", "Louis", "Ronnie", "Annika"],
+    4: ["Johan", "Hanna K", "Marcel", "Bart", "Abby", "Roos"],
 }
 RONDES = 4
 
@@ -110,7 +110,7 @@ def main():
     for baan, names, rounds, s in report:
         print(f"BAAN {baan}  ({len(names)} spelers: {', '.join(names)})")
         for i, r in enumerate(rounds, 1):
-            line = f"  Ronde {i}:  {' + '.join(r['a'])}  vs  {' + '.join(r['b'])}"
+            line = f"  Partij {i}:  {' + '.join(r['a'])}  vs  {' + '.join(r['b'])}"
             if r["rest"]:
                 line += f"   | rust: {r['rest']}"
             print(line)
@@ -128,7 +128,7 @@ def main():
             hist[c] = hist.get(c, 0) + 1
         print(f"  Controle: max {s[0]}x samen in een team; paren per aantal keer teamgenoot: "
               + ", ".join(f"{k}x: {v}" for k, v in sorted(hist.items())))
-        print("  Rondes gespeeld: " + ", ".join(f"{p} {c}" for p, c in played.items()))
+        print("  Partijen gespeeld: " + ", ".join(f"{p} {c}" for p, c in played.items()))
         print()
 
 

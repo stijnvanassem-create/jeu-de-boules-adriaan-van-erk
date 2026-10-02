@@ -1,15 +1,15 @@
 // Service worker: app werkt offline na de eerste laadbeurt.
 // Verhoog VERSION bij elke release zodat telefoons de nieuwe versie ophalen.
-const VERSION = 'jdb-v3';
+const VERSION = 'jdb-v4';
 const SHELL = [
   './', 'index.html', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 const PLAYERS = {
-  1: ['stefen', 'arie', 'hanna-g', 'juliette', 'joost', 'gordon'],
-  2: ['bert', 'renata', 'niels', 'gert', 'marcel', 'emil', 'pieter-jan'],
-  3: ['myrna', 'roos', 'roxanne', 'bartjan', 'louis', 'ronnie', 'annika'],
-  4: ['ardin', 'mark', 'johan', 'hanna-k', 'bart', 'abby']
+  1: ['stefen', 'hanna-g', 'juliette', 'joost', 'gordon', 'ardin'],
+  2: ['bert', 'renata', 'niels', 'gert', 'emil', 'pieter-jan'],
+  3: ['myrna', 'roxanne', 'bartjan', 'louis', 'ronnie', 'annika'],
+  4: ['johan', 'hanna-k', 'marcel', 'bart', 'abby', 'roos']
 };
 const PHOTOS = Object.entries(PLAYERS).flatMap(([b, ns]) => ns.map(n => `players/baan${b}/${n}.jpg`));
 
