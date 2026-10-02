@@ -6,6 +6,8 @@ Werkt offline na de eerste keer laden (service worker) en is toe te voegen aan h
 
 ## Gebruik op de baan
 
+Op het startscherm en onder **Instellingen** staat een korte uitleg "Zo werkt het" voor de spelers.
+
 1. Open de link en kies je baan. De telefoon onthoudt de keuze.
 2. Kies de doelscore (9/11/13) en tik op **Start**. Dan begint de klok van het uitje (90 min). Er is geen tijdslimiet per partij: speel partijen tot de tijd op is.
 3. Tik per ronde (mène) op **+1 … +6** bij het team dat de ronde wint. **Undo** haalt de laatste ronde weg.

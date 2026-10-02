@@ -75,6 +75,8 @@ h3{font-size:19px;font-weight:900;margin:0 0 10px}
 .seg button.on{background:var(--blue);color:#fff;box-shadow:none}
 .note{font-size:15px;font-weight:700;line-height:1.35}
 .lbl{font-size:16px;font-weight:900;margin:2px 0 8px}
+.how{margin:0;padding-left:22px;display:grid;gap:6px}
+.how li{font-size:15px;line-height:1.35}
 
 /* ---------- lane select ---------- */
 .lanes{display:grid;gap:12px}
@@ -382,6 +384,7 @@ function viewStart() {
       <div class="pgrid">${ps.map(n => `<div>${av(n, 64)}<span>${esc(n)}</span></div>`).join('')}</div>
       ${ps.length === 7 ? `<p class="note" style="margin:12px 0 0">Met 7 spelers rust er elke partij één speler; iedereen rust hooguit één keer.</p>` : ''}
     </div>
+    ${howTo()}
     <div class="card" style="color:var(--navy)">
       <div class="lbl">Doelscore</div>
       ${segTarget()}
@@ -389,6 +392,16 @@ function viewStart() {
     <button class="btn primary" style="min-height:72px;font-size:26px" data-act="start">Start</button>
     <p class="note" style="color:#fff;text-align:center">Bij Start begint de klok van het uitje (${EVENT_MIN} min). Jullie spelen partijen tot de tijd op is, zonder tijdslimiet per partij.</p>`;
 }
+const howTo = () => `<div class="card" style="color:var(--navy)">
+      <div class="lbl">Zo werkt het</div>
+      <ol class="how">
+        <li>Jullie spelen ${ROUNDS} partijen, 3 tegen 3. De app zegt wie bij wie in het team zit.</li>
+        <li>Zijn alle ballen gegooid? Dan is de ronde klaar. Tik bij het team dat de ronde wint hoeveel punten het krijgt: <b>+1</b> t/m <b>+6</b>.</li>
+        <li>Eerste team op ${S.target} punten wint de partij. Er is geen tijdslimiet per partij.</li>
+        <li>Na ${EVENT_MIN} minuten is het klaar. De partij die dan loopt is de laatste: wie voorstaat wint.</li>
+        <li><b>Klassement:</b> je punten min die van de tegenstander, opgeteld over al je partijen. Win je met ${S.target}–5, dan krijgt iedereen in je team +${S.target - 5}. Hoogste saldo wint.</li>
+      </ol>
+    </div>`;
 const segTarget = () => `<div class="seg">${TARGETS.map(t => `<button class="${S.target === t ? 'on' : ''}" data-act="target" data-arg="${t}">${t}</button>`).join('')}</div>`;
 
 function teamCol(side, names, sc, lead, locked) {
@@ -475,6 +488,7 @@ function viewMeer() {
   const started = S.started && S.startedAt ? new Date(S.startedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : null;
   return `<div class="set"><h2>Instellingen · Baan ${lane}</h2>
     <div class="card"><div class="lbl">Doelscore</div>${segTarget()}</div>
+    ${howTo()}
     ${S.started ? `<div class="card"><div class="lbl">Klok van het uitje</div>
       <p class="note" style="margin:0">Gestart om ${started}, duur ${EVENT_MIN} minuten.</p>
       <button class="btn ghost" data-act="eventReset">Uitjesklok opnieuw starten</button></div>` : ''}
