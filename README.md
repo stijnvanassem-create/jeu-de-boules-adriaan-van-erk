@@ -1,26 +1,30 @@
 # Jeu de Boules – bedrijfsuitje
 
-Mobiele webapp om een jeu de boules-uitje bij te houden: 4 banen, elk een eigen toernooi van 4 rondes triplette (3 tegen 3).
+Mobiele webapp om een jeu de boules-uitje bij te houden: 4 banen, elk een eigen toernooi van 4 partijen triplette (3 tegen 3).
 Eén HTML-bestand, geen backend, geen login. Alles staat in `localStorage` van de telefoon, per baan (`jdb_baan1` t/m `jdb_baan4`).
 Werkt offline na de eerste keer laden (service worker) en is toe te voegen aan het beginscherm.
 
 ## Gebruik op de baan
 
+Op het startscherm en onder **Instellingen** staat een korte uitleg "Zo werkt het" voor de spelers.
+
 1. Open de link en kies je baan. De telefoon onthoudt de keuze.
-2. Stel doelscore (9/11/13) en rondetijd in en tik op **Start**. Dan begint ook de klok van het uitje (90 min).
-3. Tik per mène op **+1 … +6** bij het team dat de mène wint. **Undo** haalt de laatste mène weg.
-4. Bij het bereiken van de doelscore vraagt de app of de ronde afgesloten mag worden. Bij 0 op de klok: wie voorstaat wint, gelijk blijft gelijk.
-5. Na ronde 4, of via **Instellingen → Eindstand nu**, verschijnt het eindscherm met **Opslaan als afbeelding**.
+2. Kies de doelscore (9/11/13) en tik op **Start**. Dan begint de klok van het uitje (90 min). Er is geen tijdslimiet per partij: speel partijen tot de tijd op is.
+3. Tik per ronde (mène) op **+1 … +6** bij het team dat de ronde wint. **Undo** haalt de laatste ronde weg.
+4. Bij het bereiken van de doelscore vraagt de app of de partij afgesloten mag worden.
+5. Is de uitjestijd op, dan is de lopende partij de laatste: wie voorstaat wint, gelijk blijft gelijk, daarna volgt de eindstand.
+6. Na partij 4, of via **Instellingen → Eindstand nu**, verschijnt het eindscherm met **Opslaan als afbeelding**.
 
 ### Baan resetten
 **Instellingen → Reset baan N** (twee keer bevestigen). Dit wist alleen de stand van die baan op die telefoon.
 Verkeerde baan gekozen? **Instellingen → Wissel van baan** (de stand blijft bewaard).
 
 ## Klassement
-- Saldo per ronde = puntenverschil van de partij (13–5: winnaars +8, verliezers −8). Gelijkspel = 0.
-- Sortering op **gemiddeld saldo per gespeelde ronde** (eerlijk bij 7 spelers), daarna totaal gescoorde punten, daarna onderling resultaat.
-- De lopende ronde telt live mee (voorlopig) zodra er een mène gescoord is.
-- Een ronde die zonder score wordt afgesloten telt als overgeslagen.
+- Saldo per partij = puntenverschil (13–5: winnaars +8, verliezers −8). Gelijkspel = 0.
+- Sortering op **totaal saldo** (alle partijen opgeteld), daarna aantal gewonnen partijen, daarna totaal gescoorde punten, daarna onderling resultaat.
+- Bij 7 spelers rust iedereen hooguit één keer. Rusten kost niks: het saldo blijft die partij staan.
+- De lopende partij telt live mee (voorlopig) zodra er gescoord is.
+- Een partij die zonder score wordt afgesloten telt als overgeslagen.
 
 ## Foto's aanleveren
 
@@ -60,49 +64,49 @@ Let op: de site is publiek, dus foto's in deze repo zijn voor iedereen met de li
 
 ## Speelschema's
 
-Berekend met `python3 tools/schema.py` (exhaustief zoeken: elke ronde andere teams, minimaal herhaalde teamgenoten,
+Berekend met `python3 tools/schema.py` (exhaustief zoeken: elke partij andere teams, minimaal herhaalde teamgenoten,
 tegenstanders zo gelijk mogelijk verdeeld, bij 7 spelers rust iedereen hooguit één keer) en hard in `index.html` gezet.
 Opnieuw genereren: `python3 tools/schema.py --js` en het `SCHEDULE`-blok in `index.html` vervangen.
 
 ```
 BAAN 1  (6 spelers: Stefen, Arie, Hanna G, Juliëtte, Joost, Gordon)
-  Ronde 1:  Stefen + Arie + Hanna G  vs  Juliëtte + Joost + Gordon
-  Ronde 2:  Stefen + Arie + Juliëtte  vs  Hanna G + Joost + Gordon
-  Ronde 3:  Stefen + Hanna G + Joost  vs  Arie + Juliëtte + Gordon
-  Ronde 4:  Stefen + Juliëtte + Joost  vs  Arie + Hanna G + Gordon
+  Partij 1:  Stefen + Arie + Hanna G  vs  Juliëtte + Joost + Gordon
+  Partij 2:  Stefen + Arie + Juliëtte  vs  Hanna G + Joost + Gordon
+  Partij 3:  Stefen + Hanna G + Joost  vs  Arie + Juliëtte + Gordon
+  Partij 4:  Stefen + Juliëtte + Joost  vs  Arie + Hanna G + Gordon
   Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 2x: 12
-  Rondes gespeeld: Stefen 4, Arie 4, Hanna G 4, Juliëtte 4, Joost 4, Gordon 4
+  Partijen gespeeld: Stefen 4, Arie 4, Hanna G 4, Juliëtte 4, Joost 4, Gordon 4
 
 BAAN 2  (7 spelers: Bert, Renata, Niels, Gert, Marcel, Emil, Pieter Jan)
-  Ronde 1:  Bert + Renata + Gert  vs  Marcel + Emil + Pieter Jan   | rust: Niels
-  Ronde 2:  Bert + Niels + Marcel  vs  Renata + Emil + Pieter Jan   | rust: Gert
-  Ronde 3:  Bert + Niels + Emil  vs  Gert + Marcel + Pieter Jan   | rust: Renata
-  Ronde 4:  Bert + Renata + Pieter Jan  vs  Niels + Gert + Emil   | rust: Marcel
+  Partij 1:  Bert + Renata + Gert  vs  Marcel + Emil + Pieter Jan   | rust: Niels
+  Partij 2:  Bert + Niels + Marcel  vs  Renata + Emil + Pieter Jan   | rust: Gert
+  Partij 3:  Bert + Niels + Emil  vs  Gert + Marcel + Pieter Jan   | rust: Renata
+  Partij 4:  Bert + Renata + Pieter Jan  vs  Niels + Gert + Emil   | rust: Marcel
   Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 1x: 12, 2x: 6
-  Rondes gespeeld: Bert 4, Renata 3, Niels 3, Gert 3, Marcel 3, Emil 4, Pieter Jan 4
+  Partijen gespeeld: Bert 4, Renata 3, Niels 3, Gert 3, Marcel 3, Emil 4, Pieter Jan 4
 
 BAAN 3  (7 spelers: Myrna, Roos, Roxanne, Bartjan, Louis, Ronnie, Annika)
-  Ronde 1:  Roos + Roxanne + Bartjan  vs  Louis + Ronnie + Annika   | rust: Myrna
-  Ronde 2:  Myrna + Roos + Louis  vs  Bartjan + Ronnie + Annika   | rust: Roxanne
-  Ronde 3:  Myrna + Roos + Ronnie  vs  Roxanne + Louis + Annika   | rust: Bartjan
-  Ronde 4:  Myrna + Roxanne + Ronnie  vs  Roos + Bartjan + Louis   | rust: Annika
+  Partij 1:  Roos + Roxanne + Bartjan  vs  Louis + Ronnie + Annika   | rust: Myrna
+  Partij 2:  Myrna + Roos + Louis  vs  Bartjan + Ronnie + Annika   | rust: Roxanne
+  Partij 3:  Myrna + Roos + Ronnie  vs  Roxanne + Louis + Annika   | rust: Bartjan
+  Partij 4:  Myrna + Roxanne + Ronnie  vs  Roos + Bartjan + Louis   | rust: Annika
   Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 1x: 12, 2x: 6
-  Rondes gespeeld: Myrna 3, Roos 4, Roxanne 3, Bartjan 3, Louis 4, Ronnie 4, Annika 3
+  Partijen gespeeld: Myrna 3, Roos 4, Roxanne 3, Bartjan 3, Louis 4, Ronnie 4, Annika 3
 
 BAAN 4  (6 spelers: Ardin, Mark, Johan, Hanna K, Bart, Abby)
-  Ronde 1:  Ardin + Mark + Johan  vs  Hanna K + Bart + Abby
-  Ronde 2:  Ardin + Mark + Hanna K  vs  Johan + Bart + Abby
-  Ronde 3:  Ardin + Johan + Bart  vs  Mark + Hanna K + Abby
-  Ronde 4:  Ardin + Hanna K + Bart  vs  Mark + Johan + Abby
+  Partij 1:  Ardin + Mark + Johan  vs  Hanna K + Bart + Abby
+  Partij 2:  Ardin + Mark + Hanna K  vs  Johan + Bart + Abby
+  Partij 3:  Ardin + Johan + Bart  vs  Mark + Hanna K + Abby
+  Partij 4:  Ardin + Hanna K + Bart  vs  Mark + Johan + Abby
   Controle: max 2x samen in een team; paren per aantal keer teamgenoot: 0x: 3, 2x: 12
-  Rondes gespeeld: Ardin 4, Mark 4, Johan 4, Hanna K 4, Bart 4, Abby 4
+  Partijen gespeeld: Ardin 4, Mark 4, Johan 4, Hanna K 4, Bart 4, Abby 4
 ```
 
 Bij 6 spelers is "12 paren 2× samen, 3 paren nooit" wiskundig het beste wat in 4 rondes kan (de zoektocht controleert alle mogelijkheden).
 
 ## Easter eggs
-Fanny (verliezen met 0), Carreau! (10% per mène), Franse commentaarregels (~1 op 5 mènes), Sextuplé! (mène van 6),
-Égalité (gelijke stand), En feu! (3 rondes op rij gewonnen), omgekeerd kroontje voor de hekkensluiter,
+Fanny (verliezen met 0), Carreau! (10% per ronde), Franse commentaarregels (~1 op 5 rondes), Sextuplé! (ronde van 6),
+Égalité (gelijke stand), En feu! (3 partijen op rij gewonnen), omgekeerd kroontje voor de hekkensluiter,
 en 7× tikken op de titel voor retro-modus.
 
 ## Techniek
