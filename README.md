@@ -1,6 +1,6 @@
 # Jeu de Boules – bedrijfsuitje
 
-Mobiele webapp om een jeu de boules-uitje bij te houden: 4 banen, elk een eigen toernooi van 4 partijen triplette (3 tegen 3).
+Mobiele webapp om een jeu de boules-uitje bij te houden: 4 banen, elk een eigen toernooi van partijen triplette (3 tegen 3), zoveel als er in 90 minuten passen.
 Eén HTML-bestand, geen backend, geen login. Alles staat in `localStorage` van de telefoon, per baan (`jdb_baan1` t/m `jdb_baan4`).
 Werkt offline na de eerste keer laden (service worker) en is toe te voegen aan het beginscherm.
 
@@ -13,7 +13,7 @@ Op het startscherm en onder **Instellingen** staat een korte uitleg "Zo werkt he
 3. Tik per ronde (mène) op **+1 … +6** bij het team dat de ronde wint. **Undo** haalt de laatste ronde weg.
 4. Bij het bereiken van de doelscore vraagt de app of de partij afgesloten mag worden.
 5. Is de uitjestijd op, dan is de lopende partij de laatste: wie voorstaat wint, gelijk blijft gelijk, daarna volgt de eindstand.
-6. Na partij 4, of via **Instellingen → Eindstand nu**, verschijnt het eindscherm met **Opslaan als afbeelding**.
+6. Als de tijd op is, of via **Instellingen → Eindstand nu**, verschijnt het eindscherm met **Opslaan als afbeelding**.
 
 ### Baan resetten
 **Instellingen → Reset baan N** (twee keer bevestigen). Dit wist alleen de stand van die baan op die telefoon.
@@ -22,7 +22,8 @@ Verkeerde baan gekozen? **Instellingen → Wissel van baan** (de stand blijft be
 ## Klassement
 - Saldo per partij = puntenverschil (13–5: winnaars +8, verliezers −8). Gelijkspel = 0.
 - Sortering op **totaal saldo** (alle partijen opgeteld), daarna aantal gewonnen partijen, daarna totaal gescoorde punten, daarna onderling resultaat.
-- Bij 7 spelers rust iedereen hooguit één keer. Rusten kost niks: het saldo blijft die partij staan.
+- Er is geen maximum aantal partijen. Na partij 4 begint het schema weer bij partij 1.
+- Bij 7 spelers rust er elke partij één speler, om de beurt. Rusten kost niks: het saldo blijft die partij staan.
 - De lopende partij telt live mee (voorlopig) zodra er gescoord is.
 - Een partij die zonder score wordt afgesloten telt als overgeslagen.
 
