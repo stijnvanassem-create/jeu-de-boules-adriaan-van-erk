@@ -54,7 +54,6 @@ nav button.on{font-weight:900}
 .av{--s:40px;position:relative;flex:none;width:var(--s);height:var(--s);border-radius:50%;overflow:hidden;
   display:inline-grid;place-items:center;background:var(--blue);color:#fff;font-weight:900;font-size:calc(var(--s)*.46);
   box-shadow:0 0 0 2px #fff}
-.av.c1{background:var(--navy)}
 .light .av{box-shadow:0 0 0 2px var(--navy)}
 .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 
@@ -96,10 +95,6 @@ h3{font-size:19px;font-weight:900;margin:0 0 10px}
 /* ---------- round ---------- */
 .rhead{display:flex;align-items:center;gap:10px;margin:0 2px 8px}
 .rhead .rn{font-size:24px;font-weight:900}
-.dots{display:flex;gap:6px;margin-left:auto}
-.dots i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 2px #fff}
-.dots i.done{background:#fff}
-.dots i.cur{background:var(--blue);box-shadow:0 0 0 3px #fff;width:16px;height:16px}
 
 @keyframes pulse{50%{filter:brightness(1.25)}}
 
@@ -254,7 +249,6 @@ const LANES = {
   3: ['Myrna', 'Roos', 'Roxanne', 'Bartjan', 'Louis', 'Ronnie', 'Annika'],
   4: ['Ardin', 'Mark', 'Johan', 'Hanna K', 'Bart', 'Abby'],
 };
-const ROUNDS = 4;
 const TARGETS = [9, 11, 13];
 const EVENT_MIN = 90;
 
@@ -264,10 +258,11 @@ const ls = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
+const newRound = () => ({ menes: [], status: 'open' });
 const fresh = l => ({
   v: 1, lane: l, started: false, startedAt: null, target: 13, timeUp: false,
   current: 0, finished: false,
-  rounds: Array.from({ length: ROUNDS }, () => ({ menes: [], status: 'open', })),
+  rounds: [newRound()],
 });
 function loadLane(l) {
   try { const s = JSON.parse(ls.get('jdb_baan' + l)); if (s && s.v === 1) return s; } catch (e) {}
@@ -287,9 +282,8 @@ const missing = new Set();
 window.miss = img => { missing.add(img.getAttribute('src')); img.remove(); };
 function av(n, size = 40, l = lane) {
   const src = photo(l, n);
-  const c = [...n].reduce((h, ch) => h + ch.charCodeAt(0), 0) % 2 ? ' c1' : '';
   const img = missing.has(src) ? '' : `<img src="${src}" alt="" loading="lazy" onerror="miss(this)">`;
-  return `<span class="av${c}" style="--s:${size}px">${esc(n[0])}${img}</span>`;
+  return `<span class="av" style="--s:${size}px">${esc(n[0])}${img}</span>`;
 }
 const fmtClock = ms => {
   const neg = ms < 0; ms = Math.abs(ms);
@@ -297,7 +291,8 @@ const fmtClock = ms => {
   return (neg ? '+' : '') + m + ':' + String(s % 60).padStart(2, '0');
 };
 const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
-const sched = i => SCHEDULE[lane][i];
+// Na het laatste schema begint het schema weer bij partij 1.
+const sched = i => SCHEDULE[lane][i % SCHEDULE[lane].length];
 const score = r => r.menes.reduce((s, m) => (s[m.t] += m.p, s), [0, 0]);
 const eventLeft = () => EVENT_MIN * 60000 - (Date.now() - S.startedAt);
 const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
@@ -382,7 +377,7 @@ function viewStart() {
   return `<div class="card" style="color:var(--navy)">
       <h2 style="margin-top:0">Baan ${lane} · ${ps.length} spelers</h2>
       <div class="pgrid">${ps.map(n => `<div>${av(n, 64)}<span>${esc(n)}</span></div>`).join('')}</div>
-      ${ps.length === 7 ? `<p class="note" style="margin:12px 0 0">Met 7 spelers rust er elke partij één speler; iedereen rust hooguit één keer.</p>` : ''}
+      ${ps.length === 7 ? `<p class="note" style="margin:12px 0 0">Met 7 spelers rust er elke partij één speler, om de beurt.</p>` : ''}
     </div>
     ${howTo()}
     <div class="card" style="color:var(--navy)">
@@ -395,7 +390,7 @@ function viewStart() {
 const howTo = () => `<div class="card" style="color:var(--navy)">
       <div class="lbl">Zo werkt het</div>
       <ol class="how">
-        <li>Jullie spelen ${ROUNDS} partijen, 3 tegen 3. De app zegt wie bij wie in het team zit.</li>
+        <li>Jullie spelen partijen van 3 tegen 3, zoveel als er in ${EVENT_MIN} minuten passen. De app zegt wie bij wie in het team zit.</li>
         <li>Zijn alle ballen gegooid? Dan is de ronde klaar. Tik bij het team dat de ronde wint hoeveel punten het krijgt: <b>+1</b> t/m <b>+6</b>.</li>
         <li>Eerste team op ${S.target} punten wint de partij. Er is geen tijdslimiet per partij.</li>
         <li>Na ${EVENT_MIN} minuten is het klaar. De partij die dan loopt is de laatste: wie voorstaat wint.</li>
@@ -422,10 +417,8 @@ function viewRound() {
     run = run || [0, 0]; run[m.t] += m.p;
     return `<div class="m ${m.t ? 'B' : 'A'}"><b>+${m.p}</b>${run[0]}–${run[1]}</div>`;
   }).join('');
-  const dots = S.rounds.map((x, k) => `<i class="${k === i ? 'cur' : x.status !== 'open' ? 'done' : ''}"></i>`).join('');
-  const next = i + 1 < ROUNDS ? sched(i + 1) : null;
   return `
-    <div class="rhead"><span class="rn">Partij ${i + 1} van ${ROUNDS}</span><span class="note">tot ${S.target}</span><div class="dots">${dots}</div></div>
+    <div class="rhead"><span class="rn">Partij ${i + 1}</span><span class="note">tot ${S.target}</span></div>
     ${s.rest ? `<div class="rest">${av(s.rest, 34)}<span>Rust deze partij: <b>${esc(s.rest)}</b></span></div>` : ''}
     <div class="teams">
       ${teamCol(0, s.a, sa, sa > sb, locked)}
@@ -437,7 +430,7 @@ function viewRound() {
     </div>
     <div class="ractions">
       <button class="btn ghost" data-act="close">Partij afsluiten</button>
-      <button class="btn ghost" data-act="next">${next ? `Hierna: partij ${i + 2}` : 'Laatste partij'}</button>
+      <button class="btn ghost" data-act="next">Hierna: partij ${i + 2}</button>
     </div>`;
 }
 function standingsList(st, opts = {}) {
@@ -466,8 +459,10 @@ function viewStand() {
       <div class="legend">Saldo = je punten min die van de tegenstander, opgeteld over al je partijen. Win je met 13–5, dan krijg je +8; verlies je zo, dan −8. Gelijk saldo? Dan telt het aantal gewonnen partijen, daarna het totaal aantal gescoorde punten.${LANES[lane].length === 7 ? ' Rusten kost niks: je saldo blijft die partij gewoon staan.' : ''}</div>
     </div>
     <h2>Uitslagen per partij</h2>
-    ${S.rounds.map((r, i) => resultCard(r, i)).join('')}`;
+    ${shownRounds().map(i => resultCard(S.rounds[i], i)).join('')}`;
 }
+// Gespeelde partijen plus de lopende; in de eindstand alleen wat echt gespeeld of overgeslagen is.
+const shownRounds = () => S.rounds.map((r, i) => i).filter(i => S.finished ? S.rounds[i].status !== 'open' : i <= S.current);
 function resultCard(r, i) {
   const s = sched(i), [sa, sb] = score(r);
   const cur = !S.finished && S.started && i === S.current;
@@ -496,7 +491,7 @@ function viewMeer() {
       ${S.finished
         ? `<button class="btn ghost" data-act="unfinish">Eindstand terugdraaien</button>`
         : `<button class="btn navy" data-act="finishNow" ${S.started ? '' : 'disabled'}>Eindstand nu</button>
-           <p class="note" style="margin:0">Sluit het toernooi nu af, bijvoorbeeld als partij 4 niet meer past.</p>`}
+           <p class="note" style="margin:0">Sluit het toernooi nu af, bijvoorbeeld als jullie eerder stoppen.</p>`}
     </div>
     <div class="card"><div class="lbl">Baan</div>
       <button class="btn ghost" data-act="switchLane">Wissel van baan</button>
@@ -551,7 +546,8 @@ function closeRound(opts = {}) {
   if (!r.menes.length) r.status = 'skipped';
   else r.status = 'done';
   S.current = i + 1;
-  if (S.current >= ROUNDS || eventLeft() <= 0) S.finished = true;
+  if (eventLeft() <= 0) S.finished = true;
+  if (!S.rounds[S.current]) S.rounds.push(newRound());
   save();
   if (!opts.silent) afterClose(i, sa, sb);
   render();
@@ -601,7 +597,6 @@ const ACT = {
   close: () => askClose(),
   next: () => {
     const i = S.current + 1;
-    if (i >= ROUNDS) return ask('Dit is de laatste partij', 'Na deze partij volgt de eindstand.', [{ label: 'Oké', cls: 'primary' }]);
     const s = sched(i);
     ask(`Volgende: partij ${i + 1}`, `<b>Team A:</b> ${s.a.map(esc).join(', ')}<br><b>Team B:</b> ${s.b.map(esc).join(', ')}${s.rest ? `<br><b>Rust:</b> ${esc(s.rest)}` : ''}`, [{ label: 'Oké', cls: 'primary' }]);
   },
@@ -621,7 +616,7 @@ const ACT = {
   unfinish: () => ask('Eindstand terugdraaien?', 'Het toernooi gaat verder waar het gebleven was.', [
     { label: 'Ja, verder spelen', cls: 'primary', fn: () => {
       S.finished = false;
-      if (S.current >= ROUNDS) { S.current = ROUNDS - 1; S.rounds[S.current].status = 'open'; }
+      if (!S.rounds[S.current]) S.rounds.push(newRound());
       save(); render();
     } }, cancel]),
   eventReset: () => ask('Uitjesklok opnieuw starten?', `De ${EVENT_MIN} minuten beginnen opnieuw vanaf nu.`, [
@@ -646,7 +641,7 @@ function tick() {
   const rem = eventLeft();
   const c = $('clock');
   if (c) {
-    const sub = S.finished ? 'klaar' : `partij ${S.current + 1} van ${ROUNDS}`;
+    const sub = S.finished ? 'klaar' : `partij ${S.current + 1}`;
     c.innerHTML = rem > 0
       ? `<b>Uitje ${fmtClock(rem)}</b><small>${sub}</small>`
       : `<b>Tijd is op</b><small>${S.finished ? 'klaar' : 'laatste partij'}</small>`;
@@ -789,7 +784,7 @@ function viewEnd() {
     ${podium}
     <button class="btn primary" data-act="saveImg" style="margin:16px 0 14px">Opslaan als afbeelding</button>
     <div class="card">${standingsList(st)}</div>
-    ${S.rounds.map((r, i) => resultCard(r, i)).join('')}
+    ${shownRounds().map(i => resultCard(S.rounds[i], i)).join('')}
   </div>`;
 }
 ACT.saveImg = async () => {

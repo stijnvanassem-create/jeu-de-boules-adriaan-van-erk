@@ -1,6 +1,6 @@
 // Service worker: app werkt offline na de eerste laadbeurt.
 // Verhoog VERSION bij elke release zodat telefoons de nieuwe versie ophalen.
-const VERSION = 'jdb-v2';
+const VERSION = 'jdb-v3';
 const SHELL = [
   './', 'index.html', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
