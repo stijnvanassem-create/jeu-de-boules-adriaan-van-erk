@@ -242,12 +242,12 @@ html.retro .score{text-shadow:4px 4px 0 var(--blue)}
 // ============================================================
 // Speelschema — gegenereerd met tools/schema.py, NIET met de hand aanpassen.
 // ============================================================
-const SCHEDULE = {"1": [{"a": ["Stefen", "Arie", "Hanna G"], "b": ["Juliëtte", "Joost", "Gordon"], "rest": null}, {"a": ["Stefen", "Arie", "Juliëtte"], "b": ["Hanna G", "Joost", "Gordon"], "rest": null}, {"a": ["Stefen", "Hanna G", "Joost"], "b": ["Arie", "Juliëtte", "Gordon"], "rest": null}, {"a": ["Stefen", "Juliëtte", "Joost"], "b": ["Arie", "Hanna G", "Gordon"], "rest": null}], "2": [{"a": ["Bert", "Renata", "Gert"], "b": ["Marcel", "Emil", "Pieter Jan"], "rest": "Niels"}, {"a": ["Bert", "Niels", "Marcel"], "b": ["Renata", "Emil", "Pieter Jan"], "rest": "Gert"}, {"a": ["Bert", "Niels", "Emil"], "b": ["Gert", "Marcel", "Pieter Jan"], "rest": "Renata"}, {"a": ["Bert", "Renata", "Pieter Jan"], "b": ["Niels", "Gert", "Emil"], "rest": "Marcel"}], "3": [{"a": ["Roos", "Roxanne", "Bartjan"], "b": ["Louis", "Ronnie", "Annika"], "rest": "Myrna"}, {"a": ["Myrna", "Roos", "Louis"], "b": ["Bartjan", "Ronnie", "Annika"], "rest": "Roxanne"}, {"a": ["Myrna", "Roos", "Ronnie"], "b": ["Roxanne", "Louis", "Annika"], "rest": "Bartjan"}, {"a": ["Myrna", "Roxanne", "Ronnie"], "b": ["Roos", "Bartjan", "Louis"], "rest": "Annika"}], "4": [{"a": ["Ardin", "Mark", "Johan"], "b": ["Hanna K", "Bart", "Abby"], "rest": null}, {"a": ["Ardin", "Mark", "Hanna K"], "b": ["Johan", "Bart", "Abby"], "rest": null}, {"a": ["Ardin", "Johan", "Bart"], "b": ["Mark", "Hanna K", "Abby"], "rest": null}, {"a": ["Ardin", "Hanna K", "Bart"], "b": ["Mark", "Johan", "Abby"], "rest": null}]};
+const SCHEDULE = {"1": [{"a": ["Stefen", "Hanna G", "Juliëtte"], "b": ["Joost", "Gordon", "Ardin"], "rest": null}, {"a": ["Stefen", "Hanna G", "Joost"], "b": ["Juliëtte", "Gordon", "Ardin"], "rest": null}, {"a": ["Stefen", "Juliëtte", "Gordon"], "b": ["Hanna G", "Joost", "Ardin"], "rest": null}, {"a": ["Stefen", "Joost", "Gordon"], "b": ["Hanna G", "Juliëtte", "Ardin"], "rest": null}], "2": [{"a": ["Bert", "Renata", "Niels"], "b": ["Gert", "Emil", "Pieter Jan"], "rest": null}, {"a": ["Bert", "Renata", "Gert"], "b": ["Niels", "Emil", "Pieter Jan"], "rest": null}, {"a": ["Bert", "Niels", "Emil"], "b": ["Renata", "Gert", "Pieter Jan"], "rest": null}, {"a": ["Bert", "Gert", "Emil"], "b": ["Renata", "Niels", "Pieter Jan"], "rest": null}], "3": [{"a": ["Myrna", "Roxanne", "Bartjan"], "b": ["Louis", "Ronnie", "Annika"], "rest": null}, {"a": ["Myrna", "Roxanne", "Louis"], "b": ["Bartjan", "Ronnie", "Annika"], "rest": null}, {"a": ["Myrna", "Bartjan", "Ronnie"], "b": ["Roxanne", "Louis", "Annika"], "rest": null}, {"a": ["Myrna", "Louis", "Ronnie"], "b": ["Roxanne", "Bartjan", "Annika"], "rest": null}], "4": [{"a": ["Johan", "Hanna K", "Marcel"], "b": ["Bart", "Abby", "Roos"], "rest": null}, {"a": ["Johan", "Hanna K", "Bart"], "b": ["Marcel", "Abby", "Roos"], "rest": null}, {"a": ["Johan", "Marcel", "Abby"], "b": ["Hanna K", "Bart", "Roos"], "rest": null}, {"a": ["Johan", "Bart", "Abby"], "b": ["Hanna K", "Marcel", "Roos"], "rest": null}]};
 const LANES = {
-  1: ['Stefen', 'Arie', 'Hanna G', 'Juliëtte', 'Joost', 'Gordon'],
-  2: ['Bert', 'Renata', 'Niels', 'Gert', 'Marcel', 'Emil', 'Pieter Jan'],
-  3: ['Myrna', 'Roos', 'Roxanne', 'Bartjan', 'Louis', 'Ronnie', 'Annika'],
-  4: ['Ardin', 'Mark', 'Johan', 'Hanna K', 'Bart', 'Abby'],
+  1: ['Stefen', 'Hanna G', 'Juliëtte', 'Joost', 'Gordon', 'Ardin'],
+  2: ['Bert', 'Renata', 'Niels', 'Gert', 'Emil', 'Pieter Jan'],
+  3: ['Myrna', 'Roxanne', 'Bartjan', 'Louis', 'Ronnie', 'Annika'],
+  4: ['Johan', 'Hanna K', 'Marcel', 'Bart', 'Abby', 'Roos'],
 };
 const TARGETS = [9, 11, 13];
 const EVENT_MIN = 90;
@@ -260,12 +260,12 @@ const ls = {
 };
 const newRound = () => ({ menes: [], status: 'open' });
 const fresh = l => ({
-  v: 1, lane: l, started: false, startedAt: null, target: 13, timeUp: false,
+  v: 2, lane: l, started: false, startedAt: null, target: 13, timeUp: false,
   current: 0, finished: false,
   rounds: [newRound()],
 });
 function loadLane(l) {
-  try { const s = JSON.parse(ls.get('jdb_baan' + l)); if (s && s.v === 1) return s; } catch (e) {}
+  try { const s = JSON.parse(ls.get('jdb_baan' + l)); if (s && s.v === 2) return s; } catch (e) {}
   return fresh(l);
 }
 let lane = Number(ls.get('jdb_lane')) || null;
